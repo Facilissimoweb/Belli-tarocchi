@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { SHOP_PRODUCTS } from '../data/tarotData';
-import { OrderItem, OrderRecord, RoutePath, ShopProduct } from '../types';
+import { SHOP_PRODUCTS } from '../../data/tarotData';
+import type { OrderItem, OrderRecord, RoutePath, ShopProduct } from '../../types';
 
 interface ShopPageProps {
   onCreateOrder: (order: OrderRecord) => void;

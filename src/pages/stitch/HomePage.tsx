@@ -4,8 +4,8 @@ import {
   CARD_2_IMAGE_URL,
   HERO_IMAGE_URL,
   REFLECTION_HINTS,
-} from '../data/tarotData';
-import { RoutePath } from '../types';
+} from '../../data/tarotData';
+import type { RoutePath } from '../../types';
 
 interface HomePageProps {
   onNavigate: (path: RoutePath, serviceId?: string) => void;

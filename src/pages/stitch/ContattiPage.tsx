@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CONTACT_INFO } from '../data/tarotData';
-import { ContactChannel } from '../types';
+import { CONTACT_INFO } from '../../data/tarotData';
+import type { ContactChannel } from '../../types';
 
 interface ContattiPageProps {
   highlightedChannel: ContactChannel | null;

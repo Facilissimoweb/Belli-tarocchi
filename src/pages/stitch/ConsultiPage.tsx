@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CONSULTATIONS } from '../data/tarotData';
-import { RoutePath } from '../types';
+import { CONSULTATIONS } from '../../data/tarotData';
+import type { RoutePath } from '../../types';
 
 interface ConsultiPageProps {
   onNavigate: (path: RoutePath, serviceId?: string) => void;

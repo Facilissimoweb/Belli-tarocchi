@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import {
+import type {
   BookingRecord,
   ClientProfile,
   JournalEntry,
   OrderRecord,
   RoutePath,
-} from '../types';
+} from '../../types';
 
 interface AreaRiservataPageProps {
   profile: ClientProfile;

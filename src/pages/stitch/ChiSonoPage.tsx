@@ -1,6 +1,6 @@
 import React from 'react';
-import { HERO_IMAGE_URL } from '../data/tarotData';
-import { RoutePath } from '../types';
+import { HERO_IMAGE_URL } from '../../data/tarotData';
+import type { RoutePath } from '../../types';
 
 interface ChiSonoPageProps {
   onNavigate: (path: RoutePath, serviceId?: string) => void;
