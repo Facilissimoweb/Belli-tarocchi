@@ -1,0 +1,189 @@
+import { useEffect, useMemo, useState } from "react";
+import { siteContent } from "../data/siteContent";
+import { siteDateTime } from "../lib/locale";
+import { fetchOccupiedSlots, isOccupied, subscribeOccupiedSlots, type OccupiedSlot } from "../lib/occupiedSlots";
+import { isEveningSlot } from "../lib/bookingRules";
+import { HOUR_SLOTS, localIso, slotsForDate } from "../lib/storage";
+
+const { consulti } = siteContent;
+
+const WEEKDAYS = siteDateTime({ weekday: "short" });
+const MONTH = siteDateTime({ month: "long", year: "numeric" });
+
+type Props = {
+  dateIso: string;
+  slot: string;
+  onDate: (iso: string) => void;
+  onSlot: (slot: string) => void;
+};
+
+function firstOpenDay(iso: string, occupied: OccupiedSlot[]) {
+  const [y, m] = iso.split("-").map(Number);
+  const today = localIso();
+  const last = new Date(y, m, 0).getDate();
+  for (let d = 1; d <= last; d++) {
+    const candidate = localIso(new Date(y, m - 1, d));
+    if (candidate >= today && openHours(candidate, occupied).length > 0) return candidate;
+  }
+  return iso;
+}
+
+function monthCells(iso: string) {
+  const [y, m] = iso.split("-").map(Number);
+  const first = new Date(y, m - 1, 1);
+  const offset = (first.getDay() + 6) % 7;
+  const start = new Date(y, m - 1, 1 - offset);
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return {
+      iso: localIso(d),
+      day: d.getDate(),
+      outside: d.getMonth() !== m - 1,
+    };
+  });
+}
+
+function openHours(iso: string, occupied: OccupiedSlot[]) {
+  return slotsForDate(iso).filter((hour) => !isOccupied(occupied, iso, hour));
+}
+
+function monthRange(iso: string) {
+  const [y, m] = iso.split("-").map(Number);
+  const from = localIso(new Date(y, m - 1, 1));
+  const to = localIso(new Date(y, m, 0));
+  return { from, to };
+}
+
+export function BookingCalendar({ dateIso, slot, onDate, onSlot }: Props) {
+  const today = localIso();
+  const activeIso = dateIso || today;
+  const cells = useMemo(() => monthCells(activeIso), [activeIso]);
+  const [occupied, setOccupied] = useState<OccupiedSlot[]>([]);
+  const hours = openHours(activeIso, occupied);
+  const [y, m] = activeIso.split("-").map(Number);
+  const prevMonthLast = localIso(new Date(y, m - 1, 0));
+  const prevDisabled = prevMonthLast < today;
+  const headers = useMemo(() => {
+    const monday = new Date(2026, 0, 5);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return WEEKDAYS.format(d).replace(".", "");
+    });
+  }, []);
+
+  useEffect(() => {
+    const { from, to } = monthRange(activeIso);
+    let alive = true;
+    const load = () => {
+      void fetchOccupiedSlots(from, to).then((list) => {
+        if (alive) setOccupied(list);
+      });
+    };
+    load();
+    const stop = subscribeOccupiedSlots(load);
+    return () => {
+      alive = false;
+      stop();
+    };
+  }, [activeIso]);
+
+  return (
+    <div className="w-full min-w-0">
+      <div className="min-w-0 bg-paper p-4 sm:p-6">
+        <div className="mb-6 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            disabled={prevDisabled}
+            className="shrink-0 px-3 py-2 text-[0.625rem] uppercase tracking-[0.16em] text-ink/45 hover:text-ink disabled:text-ink/15"
+            onClick={() => onDate(firstOpenDay(localIso(new Date(y, m - 2, 1)), occupied))}
+            aria-label="Mese precedente"
+          >
+            ←
+          </button>
+          <p className="min-w-0 flex-1 text-center font-display text-lg capitalize text-ink [overflow-wrap:anywhere]">
+            {MONTH.format(new Date(`${activeIso}T12:00:00`))}
+          </p>
+          <button
+            type="button"
+            className="shrink-0 px-3 py-2 text-[0.625rem] uppercase tracking-[0.16em] text-ink/45 hover:text-ink"
+            onClick={() => onDate(firstOpenDay(localIso(new Date(y, m, 1)), occupied))}
+            aria-label="Mese successivo"
+          >
+            →
+          </button>
+        </div>
+        <p className="mb-3 text-[0.625rem] uppercase tracking-[0.12em] text-ember-soft sm:tracking-[0.16em]">
+          {consulti.calendario.giorno}
+        </p>
+        <div className="grid w-full min-w-0 grid-cols-7 gap-1">
+          {headers.map((h) => (
+            <span
+              key={h}
+              className="min-w-0 truncate py-1 text-center text-[0.625rem] uppercase tracking-[0.04em] text-ink/40 sm:tracking-[0.12em]"
+            >
+              {h}
+            </span>
+          ))}
+          {cells.map((cell) => {
+            const disabled = cell.iso < today || openHours(cell.iso, occupied).length === 0;
+            const selected = cell.iso === dateIso;
+            return (
+              <button
+                key={cell.iso}
+                type="button"
+                disabled={disabled}
+                onClick={() => onDate(cell.iso)}
+                className={`min-w-0 h-10 text-sm ${
+                  selected
+                    ? "bg-ember text-ivory"
+                    : disabled
+                      ? "text-ink/20"
+                      : cell.outside
+                        ? "text-ink/30 hover:bg-mist"
+                        : "text-ink hover:bg-mist"
+                }`}
+              >
+                {cell.day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <p className="mt-6 text-[0.625rem] uppercase tracking-[0.12em] text-ember-soft sm:tracking-[0.16em]">
+        {consulti.calendario.orario}
+      </p>
+      <div className="mt-2 grid w-full min-w-0 grid-cols-2 gap-2 min-[22rem]:grid-cols-4 sm:grid-cols-7">
+        {HOUR_SLOTS.map((hour) => {
+          const available = hours.includes(hour);
+          return (
+            <button
+              key={hour}
+              type="button"
+              disabled={!available}
+              onClick={() => onSlot(hour)}
+              className={`min-w-0 py-3 text-xs ${
+                slot === hour && available
+                  ? "bg-graphite text-on-ink"
+                  : available
+                    ? "bg-paper text-ink hover:bg-mist"
+                    : "bg-mist text-ink/25"
+              }`}
+            >
+              {hour}
+              {isEveningSlot(hour) ? (
+                <span className="mt-1 block text-[0.625rem] uppercase tracking-[0.08em] opacity-70 [overflow-wrap:anywhere]">
+                  {consulti.seraOnlineBreve}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-4 min-w-0 text-[0.6875rem] leading-relaxed text-ink/65 [overflow-wrap:anywhere]">
+        {consulti.seraOnline}
+      </p>
+    </div>
+  );
+}

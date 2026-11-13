@@ -1,0 +1,18 @@
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_GA4_MEASUREMENT_ID?: string;
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_ANON_KEY?: string;
+  readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
+  readonly VITE_WHATSAPP_NUMBER?: string;
+  readonly VITE_TELEGRAM_URL?: string;
+  readonly VITE_SITE_GATE?: string;
+  readonly VITE_SITE_ACCESS?: string;
+  readonly VITE_SHOP_LIVE?: string;
+}
+
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

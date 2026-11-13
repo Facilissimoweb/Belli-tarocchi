@@ -1,0 +1,69 @@
+import { useEffect } from "react";
+import { siteContent } from "../data/siteContent";
+import { conPeso } from "./Prosa";
+import { WidgetDialog } from "./WidgetDialog";
+
+const { percorsoEsteso } = siteContent.chiSono;
+
+function FormazioneCards() {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {percorsoEsteso.voci.map((voce) => (
+        <article
+          key={voce.titolo}
+          className="glass-panel relative isolate flex h-full flex-col overflow-hidden p-8 transition-colors duration-300 hover:border-[rgb(212_175_55_/_0.35)]"
+        >
+          {/* Ornamento floreale come sfondo della card: dietro al testo, ancorato a destra */}
+          <img
+            src="/sfondo-card.png"
+            alt=""
+            aria-hidden
+            loading="lazy"
+            decoding="async"
+            className="pointer-events-none absolute -bottom-8 -right-10 -z-10 h-[120%] w-auto max-w-none opacity-40 mix-blend-soft-light"
+          />
+          <p className="text-[0.625rem] font-medium uppercase tracking-[0.16em] text-ink">{voce.badge}</p>
+          <span
+            className="mt-5 inline-block text-lg leading-none grayscale brightness-[1.65] contrast-110"
+            aria-hidden
+          >
+            {voce.icona}
+          </span>
+          <h3 className="mt-4 font-display text-xl leading-snug text-ink">{voce.titolo}</h3>
+          <p className="mt-5 flex-1 text-sm leading-[1.85] text-ink/85">{conPeso(voce.testo)}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+export function FormazioneOlisticaBody() {
+  return (
+    <div>
+      <p className="text-center text-[0.625rem] uppercase tracking-[0.16em] text-ember-soft">{percorsoEsteso.kicker}</p>
+      <p className="mt-4 text-center text-[0.625rem] uppercase tracking-[0.16em] text-ember-soft">{percorsoEsteso.badge}</p>
+      <p className="mx-auto mt-5 max-w-2xl text-center text-sm leading-[1.85] text-ink/70">
+        {conPeso(percorsoEsteso.lead)}
+      </p>
+      <div className="mt-10">
+        <FormazioneCards />
+      </div>
+    </div>
+  );
+}
+
+export function FormazioneOlisticaModal({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <WidgetDialog title={percorsoEsteso.titolo} onClose={onClose} xxl>
+      <FormazioneOlisticaBody />
+    </WidgetDialog>
+  );
+}

@@ -1,0 +1,495 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { User } from "@supabase/supabase-js";
+import { siteContent } from "../data/siteContent";
+import { mapAuthError } from "../lib/authErrors";
+import { providerFromUser } from "../lib/authProfile";
+import { getSupabaseClient, isSupabaseConfigured } from "../lib/supabase";
+import {
+  canRequestWithdrawal,
+  clearPendingConsents,
+  clearSession,
+  discardSettledBookingDraft,
+  DEMO_ACCOUNT,
+  emptyConsents,
+  hasRequiredConsents,
+  readPendingConsents,
+  readPurchases,
+  readSession,
+  samePurchaseSnapshot,
+  writePendingConsents,
+  writePurchases,
+  writeSession,
+  type Consents,
+  type Purchase,
+  type PurchaseDraft,
+  type Session,
+} from "../lib/storage";
+import { draftToPurchase, purchaseToInsert, rowToPurchase, type PurchaseRow } from "../lib/purchases";
+import {
+  discardSettledDigitalDraft,
+  ownedProductIds,
+  readLocalDigitalOrders,
+  rowToDigitalOrder,
+  sameDigitalSnapshot,
+  writeLocalDigitalOrders,
+  type DigitalOrder,
+  type DigitalOrderRow,
+} from "../lib/digitalOrders";
+import type { DigitalProductId } from "../data/catalogo";
+import { isStudioAdminEmail, STUDIO_ADMIN_EMAIL } from "../lib/admin";
+import { safeInternalPath } from "../lib/siteRoutes";
+
+const { auth } = siteContent;
+
+type AuthContextValue = {
+  session: Session | null;
+  ready: boolean;
+  purchases: Purchase[];
+  digitalOrders: DigitalOrder[];
+  ownsDigital: (id: DigitalProductId) => boolean;
+  authOpen: boolean;
+  openAuth: () => void;
+  closeAuth: () => void;
+  isAdmin: boolean;
+  login: (email: string, password: string, consents: Consents) => Promise<string | null | "verify">;
+  loginAdmin: (password: string) => Promise<string | null>;
+  register: (
+    email: string,
+    password: string,
+    consents: Consents,
+    name?: string,
+    redirectTo?: string,
+  ) => Promise<string | null | "verify">;
+  requestMagicLink: (
+    email: string,
+    consents: Consents,
+    redirectTo?: string,
+  ) => Promise<string | null | "verify">;
+  loginWithGoogle: (consents: Consents, redirectTo?: string) => Promise<string | null>;
+  logout: () => Promise<void>;
+  addPurchase: (draft: PurchaseDraft, consents?: Consents) => Promise<string | null>;
+  requestWithdrawal: (id: string) => Promise<string | null>;
+  refreshPurchases: () => Promise<void>;
+  updateProfile: (name: string) => Promise<string | null>;
+  updatePassword: (password: string, confirm: string) => Promise<string | null>;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+function mapUser(user: User | null, consents: Consents): Session | null {
+  if (!user?.email) return null;
+  const metaName = typeof user.user_metadata?.display_name === "string" ? user.user_metadata.display_name : "";
+  const googleName = typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : "";
+  const name = metaName || googleName || user.email.split("@")[0];
+  return {
+    id: user.id,
+    email: user.email,
+    name,
+    consents,
+    provider: providerFromUser(user),
+  };
+}
+
+function authRedirectUrl(path?: string) {
+  const origin = window.location.origin;
+  const candidate =
+    path && (path.startsWith("/") || path.startsWith("http"))
+      ? path
+      : `${window.location.pathname}${window.location.search}`;
+  return `${origin}${safeInternalPath(candidate)}`;
+}
+
+function takePendingConsents(): Consents | null {
+  const pending = readPendingConsents();
+  if (pending) clearPendingConsents();
+  return pending;
+}
+
+async function persistConsents(userId: string, email: string, name: string, consents: Consents) {
+  const sb = getSupabaseClient();
+  if (!sb) return;
+  await sb.from("profiles").upsert({
+    id: userId,
+    email,
+    display_name: name,
+    consent_privacy: consents.privacy,
+    consent_adult: consents.adult,
+    consent_refund: consents.refund,
+    consents_accepted_at: new Date().toISOString(),
+  });
+}
+
+async function loadRemotePurchases(userId: string): Promise<Purchase[]> {
+  const sb = getSupabaseClient();
+  if (!sb) return [];
+  const bookings = await sb
+    .from("bookings")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (!bookings.error && bookings.data) {
+    return (bookings.data as PurchaseRow[]).map(rowToPurchase);
+  }
+  const { data, error } = await sb
+    .from("purchases")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return (data as PurchaseRow[]).map(rowToPurchase);
+}
+
+async function loadRemoteDigitalOrders(userId: string): Promise<DigitalOrder[]> {
+  const sb = getSupabaseClient();
+  if (!sb) return [];
+  const { data, error } = await sb
+    .from("digital_orders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return (data as DigitalOrderRow[]).map(rowToDigitalOrder).filter((order): order is DigitalOrder => order !== null);
+}
+
+async function persistBooking(userId: string, purchase: Purchase) {
+  const sb = getSupabaseClient();
+  if (!sb) return null;
+  const row = purchaseToInsert(userId, purchase);
+  const bookings = await sb.from("bookings").insert(row);
+  if (!bookings.error) return null;
+  const purchases = await sb.from("purchases").insert(row);
+  return mapAuthError(purchases.error ?? bookings.error, auth.errori.servizio);
+}
+
+async function persistCancellation(userId: string, id: string) {
+  const sb = getSupabaseClient();
+  if (!sb) return null;
+  const payload = { status: "cancelled" as const };
+  const bookings = await sb.from("bookings").update(payload).eq("id", id).eq("user_id", userId).select("id");
+  if (!bookings.error && bookings.data && bookings.data.length > 0) return null;
+  const purchases = await sb.from("purchases").update(payload).eq("id", id).eq("user_id", userId).select("id");
+  if (!purchases.error && purchases.data && purchases.data.length > 0) return null;
+  return mapAuthError(purchases.error ?? bookings.error, auth.errori.servizio);
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [digitalOrders, setDigitalOrders] = useState<DigitalOrder[]>([]);
+  const [ready, setReady] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+
+  const applySession = useCallback((next: Session | null, list?: Purchase[]) => {
+    setSession(next);
+    if (next) writeSession(next);
+    else clearSession();
+    if (list) {
+      setPurchases((prev) => (samePurchaseSnapshot(prev, list) ? prev : list));
+      writePurchases(list);
+    }
+  }, []);
+
+  const sessionId = session?.id;
+
+  const applyDigital = useCallback((list: DigitalOrder[]) => {
+    discardSettledDigitalDraft(list);
+    setDigitalOrders((prev) => (sameDigitalSnapshot(prev, list) ? prev : list));
+    writeLocalDigitalOrders(list);
+  }, []);
+
+  const refreshPurchases = useCallback(async () => {
+    if (!sessionId) return;
+    const list = isSupabaseConfigured() ? await loadRemotePurchases(sessionId) : readPurchases();
+    discardSettledBookingDraft(list);
+    setPurchases((prev) => (samePurchaseSnapshot(prev, list) ? prev : list));
+    writePurchases(list);
+    const digital = isSupabaseConfigured() ? await loadRemoteDigitalOrders(sessionId) : readLocalDigitalOrders();
+    applyDigital(digital);
+  }, [sessionId, applyDigital]);
+
+  const updateProfile = useCallback(
+    async (name: string) => {
+      const current = session;
+      if (!current) return auth.errori.accesso;
+      const display = name.trim();
+      if (!display) return auth.errori.generico;
+      const sb = getSupabaseClient();
+      if (sb) {
+        const { data, error } = await sb.auth.updateUser({ data: { display_name: display } });
+        if (error) return mapAuthError(error, auth.errori.servizio);
+        await persistConsents(current.id, current.email, display, current.consents);
+        const next = data.user ? mapUser(data.user, current.consents) : { ...current, name: display };
+        if (next) applySession(next);
+        return null;
+      }
+      applySession({ ...current, name: display });
+      return null;
+    },
+    [session, applySession],
+  );
+
+  const updatePassword = useCallback(
+    async (password: string, confirm: string) => {
+      const current = session;
+      if (!current) return auth.errori.accesso;
+      if (current.provider === "google") return auth.accountGoogle;
+      if (password.length < 6) return auth.errori.passwordDebole;
+      if (password !== confirm) return auth.errori.password;
+      const sb = getSupabaseClient();
+      if (!sb) return auth.errori.servizio;
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) return mapAuthError(error, auth.errori.servizio);
+      return null;
+    },
+    [session],
+  );
+
+  useEffect(() => {
+    let unsub: (() => void) | undefined;
+    const boot = async () => {
+      const sb = getSupabaseClient();
+      if (!sb) {
+        setSession(readSession());
+        setPurchases(readPurchases());
+        setDigitalOrders(readLocalDigitalOrders());
+        setReady(true);
+        return;
+      }
+      const { data } = await sb.auth.getSession();
+      const user = data.session?.user ?? null;
+      const local = readSession();
+      const pending = takePendingConsents();
+      const consents = pending ?? local?.consents ?? emptyConsents();
+      const mapped = mapUser(user, consents);
+      setSession(mapped);
+      if (mapped) {
+        writeSession(mapped);
+        if (pending && hasRequiredConsents(pending)) {
+          void persistConsents(mapped.id, mapped.email, mapped.name, pending);
+        }
+        const list = await loadRemotePurchases(mapped.id);
+        discardSettledBookingDraft(list);
+        setPurchases(list);
+        writePurchases(list);
+        const digital = await loadRemoteDigitalOrders(mapped.id);
+        discardSettledDigitalDraft(digital);
+        setDigitalOrders(digital);
+        writeLocalDigitalOrders(digital);
+      } else {
+        setPurchases([]);
+        setDigitalOrders([]);
+      }
+      const { data: listener } = sb.auth.onAuthStateChange((_event, nextSession) => {
+        const current = readSession();
+        const incoming = takePendingConsents();
+        const nextConsents = incoming ?? current?.consents ?? emptyConsents();
+        const mappedNext = mapUser(nextSession?.user ?? null, nextConsents);
+        setSession(mappedNext);
+        if (mappedNext) {
+          writeSession(mappedNext);
+          if (incoming && hasRequiredConsents(incoming)) {
+            void persistConsents(mappedNext.id, mappedNext.email, mappedNext.name, incoming);
+          }
+          void loadRemotePurchases(mappedNext.id).then((list) => {
+            discardSettledBookingDraft(list);
+            setPurchases(list);
+            writePurchases(list);
+          });
+          void loadRemoteDigitalOrders(mappedNext.id).then((list) => {
+            discardSettledDigitalDraft(list);
+            setDigitalOrders(list);
+            writeLocalDigitalOrders(list);
+          });
+        } else {
+          clearSession();
+          setPurchases([]);
+          setDigitalOrders([]);
+        }
+      });
+      unsub = () => listener.subscription.unsubscribe();
+      setReady(true);
+    };
+    void boot();
+    return () => unsub?.();
+  }, []);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      session,
+      ready,
+      isAdmin: isStudioAdminEmail(session?.email),
+      purchases,
+      digitalOrders,
+      ownsDigital: (id) => ownedProductIds(digitalOrders).has(id),
+      authOpen,
+      openAuth: () => setAuthOpen(true),
+      closeAuth: () => setAuthOpen(false),
+      loginAdmin: async (password) => {
+        const sb = getSupabaseClient();
+        if (!sb) return auth.errori.servizio;
+        const { data, error } = await sb.auth.signInWithPassword({
+          email: STUDIO_ADMIN_EMAIL,
+          password,
+        });
+        if (error || !data.user) return mapAuthError(error, auth.errori.credenziali);
+        if (!isStudioAdminEmail(data.user.email)) {
+          await sb.auth.signOut();
+          return siteContent.admin.nonAutorizzata;
+        }
+        const consents = { privacy: true, adult: true, refund: true };
+        const next = mapUser(data.user, consents);
+        if (!next) {
+          await sb.auth.signOut();
+          return auth.errori.credenziali;
+        }
+        const list = await loadRemotePurchases(next.id);
+        applySession(next, list);
+        applyDigital(await loadRemoteDigitalOrders(next.id));
+        return null;
+      },
+      login: async (email, password, consents) => {
+        if (!hasRequiredConsents(consents)) return auth.errori.consensi;
+        const e = email.trim().toLowerCase();
+        const sb = getSupabaseClient();
+        if (sb) {
+          const { data, error } = await sb.auth.signInWithPassword({ email: e, password });
+          if (error || !data.user) return mapAuthError(error, auth.errori.credenziali);
+          const next = mapUser(data.user, consents);
+          if (!next) return auth.errori.credenziali;
+          await persistConsents(next.id, next.email, next.name, consents);
+          const list = await loadRemotePurchases(next.id);
+          applySession(next, list);
+          applyDigital(await loadRemoteDigitalOrders(next.id));
+          return null;
+        }
+        const ok =
+          (e === DEMO_ACCOUNT.email && password === DEMO_ACCOUNT.password) ||
+          (e.includes("@") && password.length >= 6);
+        if (!ok) return auth.errori.credenziali;
+        const next: Session = {
+          id: e,
+          email: e,
+          name: e === DEMO_ACCOUNT.email ? DEMO_ACCOUNT.name : e.split("@")[0],
+          consents,
+          provider: "email",
+        };
+        applySession(next, readPurchases());
+        applyDigital(readLocalDigitalOrders());
+        return null;
+      },
+      register: async (email, password, consents, name, redirectTo) => {
+        if (!hasRequiredConsents(consents)) return auth.errori.consensi;
+        const e = email.trim().toLowerCase();
+        const display = name?.trim() || e.split("@")[0];
+        const sb = getSupabaseClient();
+        if (sb) {
+          const { data, error } = await sb.auth.signUp({
+            email: e,
+            password,
+            options: { data: { display_name: display }, emailRedirectTo: authRedirectUrl(redirectTo) },
+          });
+          if (error) return mapAuthError(error);
+          if (!data.session || !data.user) return "verify";
+          const next = mapUser(data.user, consents);
+          if (!next) return auth.errori.credenziali;
+          await persistConsents(next.id, next.email, display, consents);
+          applySession({ ...next, name: display }, []);
+          applyDigital([]);
+          return null;
+        }
+        if (!e.includes("@") || password.length < 6) return auth.errori.credenziali;
+        const next: Session = { id: e, email: e, name: display, consents, provider: "email" };
+        applySession(next, readPurchases());
+        applyDigital(readLocalDigitalOrders());
+        return null;
+      },
+      requestMagicLink: async (email, consents, redirectTo) => {
+        if (!hasRequiredConsents(consents)) return auth.errori.consensi;
+        const e = email.trim().toLowerCase();
+        const sb = getSupabaseClient();
+        if (!sb) return auth.errori.servizio;
+        writePendingConsents(consents);
+        const { error } = await sb.auth.signInWithOtp({
+          email: e,
+          options: { shouldCreateUser: true, emailRedirectTo: authRedirectUrl(redirectTo) },
+        });
+        if (error) {
+          clearPendingConsents();
+          return mapAuthError(error);
+        }
+        return "verify";
+      },
+      loginWithGoogle: async (consents, redirectTo) => {
+        if (!hasRequiredConsents(consents)) return auth.errori.consensi;
+        const sb = getSupabaseClient();
+        if (!sb) return auth.errori.servizio;
+        writePendingConsents(consents);
+        const { error } = await sb.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: authRedirectUrl(redirectTo) },
+        });
+        if (error) {
+          clearPendingConsents();
+          return mapAuthError(error, auth.errori.oauth);
+        }
+        return null;
+      },
+      logout: async () => {
+        const sb = getSupabaseClient();
+        if (sb) await sb.auth.signOut();
+        applySession(null, []);
+        applyDigital([]);
+      },
+      addPurchase: async (draft, consents) => {
+        const current = session;
+        if (!current) return auth.errori.accesso;
+        const used = consents ?? current.consents ?? emptyConsents();
+        if (!hasRequiredConsents(used)) return auth.errori.consensi;
+        const purchase = draftToPurchase(draft, used);
+        if (isSupabaseConfigured()) {
+          const err = await persistBooking(current.id, purchase);
+          if (err) return err;
+          await refreshPurchases();
+          return null;
+        }
+        const next = [purchase, ...readPurchases()];
+        writePurchases(next);
+        setPurchases(next);
+        return null;
+      },
+      refreshPurchases,
+      updateProfile,
+      updatePassword,
+      requestWithdrawal: async (id) => {
+        const current = session;
+        if (!current) return auth.errori.accesso;
+        const purchase = purchases.find((item) => item.id === id);
+        if (!purchase) return auth.errori.servizio;
+        if (!canRequestWithdrawal(purchase.status)) {
+          return siteContent.legal.vendita.sezioni.find((sezione) => sezione.id === "consulti")?.testi[1] ?? auth.errori.servizio;
+        }
+        if (isSupabaseConfigured()) {
+          const err = await persistCancellation(current.id, id);
+          if (err) return err;
+          const list = await loadRemotePurchases(current.id);
+          setPurchases(list);
+          writePurchases(list);
+          return null;
+        }
+        const next = purchases.map((item) => (item.id === id ? { ...item, status: "cancelled" as const } : item));
+        writePurchases(next);
+        setPurchases(next);
+        return null;
+      },
+    }),
+    [session, ready, purchases, digitalOrders, authOpen, applySession, applyDigital, refreshPurchases, updateProfile, updatePassword],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth deve vivere dentro AuthProvider");
+  return ctx;
+}

@@ -1,0 +1,126 @@
+import { siteContent } from "../data/siteContent";
+import { sessionModeLabel } from "./bookingRules";
+import { siteDateTime } from "./locale";
+import { STUDIO } from "../data/catalogo";
+import type { Purchase, PurchaseDraft } from "./storage";
+
+export function getWhatsAppNumber() {
+  const fromEnv = (import.meta.env.VITE_WHATSAPP_NUMBER ?? "").replace(/\D/g, "");
+  if (fromEnv) return fromEnv;
+  return siteContent.brand.whatsapp.replace(/\D/g, "");
+}
+
+export function whatsappChatHref() {
+  const phone = getWhatsAppNumber();
+  return phone ? `https://wa.me/${phone}` : "https://wa.me/";
+}
+
+export function getPhoneHref() {
+  const phone = getWhatsAppNumber();
+  return phone ? `tel:+${phone}` : "";
+}
+
+export function telegramHref() {
+  const fromEnv = (import.meta.env.VITE_TELEGRAM_URL ?? "").trim();
+  if (fromEnv) return fromEnv;
+  const phone = getWhatsAppNumber();
+  return phone ? `https://t.me/+${phone}` : "";
+}
+
+export function formatBookingDay(dateIso: string) {
+  if (!dateIso) return "";
+  return siteDateTime({
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${dateIso}T12:00:00`));
+}
+
+export function buildWhatsAppMessage(draft: PurchaseDraft, optionTitle: string) {
+  const { consulti } = siteContent;
+  const lines = [
+    `Prenotazione consulto — ${siteContent.brand.wordmark}`,
+    `Nome: ${draft.name}`,
+    `Recapito: ${draft.phone}`,
+    `Consulto: ${optionTitle} (${draft.minutes} min) — €${draft.consultPrice}`,
+    `Data: ${formatBookingDay(draft.dateIso)}`,
+    `Orario: ${draft.slot}`,
+    `Modalità: ${sessionModeLabel(draft.mode, draft.slot, STUDIO.city)}`,
+    `Totale: €${draft.total}`,
+  ];
+  if (draft.pdf) lines.push(`${consulti.pdf.etichetta} (+€${consulti.pdf.prezzo})`);
+  if (draft.query) lines.push(`Quesito: ${draft.query}`);
+  lines.push("");
+  lines.push(consulti.avvisoConferma);
+  return lines.join("\n");
+}
+
+export function buildRecessoMessage(purchase: Purchase, optionTitle: string) {
+  const venditaConsulti = siteContent.legal.vendita.sezioni.find((sezione) => sezione.id === "consulti");
+  const lines = [
+    `Richiesta di recesso — ${siteContent.brand.wordmark}`,
+    `Nome: ${purchase.name}`,
+    `Consulto: ${optionTitle}`,
+    `Data: ${formatBookingDay(purchase.dateIso)}`,
+    `Orario: ${purchase.slot}`,
+    `${siteContent.auth.riferimento}: ${purchase.id}`,
+  ];
+  const paid =
+    purchase.stripeAmountTotal != null && purchase.stripeAmountTotal > 0
+      ? `€${(purchase.stripeAmountTotal / 100).toFixed(0)}`
+      : `€${purchase.total}`;
+  lines.push(`Importo: ${paid}`);
+  if (purchase.stripeCheckoutSessionId) lines.push(`Transazione: ${purchase.stripeCheckoutSessionId}`);
+  if (purchase.stripePaymentIntentId) lines.push(`Pagamento: ${purchase.stripePaymentIntentId}`);
+  lines.push("");
+  lines.push(venditaConsulti?.testi[1] ?? "");
+  lines.push(siteContent.legal.vendita.assistenza.testo);
+  return lines.filter(Boolean).join("\n");
+}
+
+export function buildPercorsoMessage(input: {
+  name: string;
+  phone: string;
+  tipo?: string;
+  note?: string;
+}) {
+  const { brand, consulti, percorsi } = siteContent;
+  const lines = [
+    `Richiesta percorso — ${brand.wordmark}`,
+    `Curata da: ${brand.titolare} (Teresa)`,
+    `Nome: ${input.name}`,
+    `Recapito: ${input.phone}`,
+  ];
+  if (input.tipo) lines.push(`${percorsi.tipologia}: ${input.tipo}`);
+  if (input.note) lines.push(`Nota: ${input.note}`);
+  lines.push("");
+  lines.push(consulti.avvisoConferma);
+  return lines.join("\n");
+}
+
+export function whatsappHref(text: string) {
+  const phone = getWhatsAppNumber();
+  const encoded = encodeURIComponent(text);
+  return phone ? `https://wa.me/${phone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+}
+
+export function isWhatsAppHref(href: string) {
+  return /(?:^https?:\/\/)?(?:api\.)?whatsapp\.com\b|(?:^https?:\/\/)?wa\.me\b/i.test(href);
+}
+
+export const WHATSAPP_ANCHOR = {
+  target: "_blank",
+  rel: "noopener noreferrer",
+} as const;
+
+export function openWhatsApp(text: string) {
+  const a = document.createElement("a");
+  a.href = whatsappHref(text);
+  a.target = WHATSAPP_ANCHOR.target;
+  a.rel = WHATSAPP_ANCHOR.rel;
+  a.referrerPolicy = "no-referrer";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
