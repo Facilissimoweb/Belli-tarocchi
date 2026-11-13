@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="it"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><title>Tarot Italia</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "secondary-fixed-dim": "#cdc5c3", "tertiary-container": "#cfb049", "on-secondary": "#342f2e", "error-container": "#93000a", "on-error-container": "#ffdad6", "on-secondary-fixed-variant": "#4b4644", "on-tertiary-fixed": "#231b00", "inverse-on-surface": "#33302d", "surface-variant": "#373432", "on-surface-variant": "#d0c5af", "on-primary-fixed-variant": "#574500", "background": "#151311", "secondary-fixed": "#eae0de", "surface-tint": "#e9c349", "tertiary-fixed-dim": "#e4c45a", "on-primary": "#3c2f00", "surface-bright": "#3c3936", "on-tertiary": "#3c2f00", "surface-container-highest": "#373432", "on-secondary-fixed": "#1f1b1a", "on-background": "#e8e1dd", "primary-fixed": "#ffe088", "on-surface": "#e8e1dd", "on-primary-fixed": "#241a00", "primary-fixed-dim": "#e9c349", "secondary": "#cdc5c3", "inverse-surface": "#e8e1dd", "tertiary-fixed": "#ffe080", "on-tertiary-fixed-variant": "#564500", "on-tertiary-container": "#544300", "on-secondary-container": "#bfb7b5", "on-primary-container": "#554300", "surface-dim": "#151311", "primary": "#f2ca50", "surface-container-high": "#2c2927", "surface-container": "#221f1d", "inverse-primary": "#735c00", "outline": "#99907c", "primary-container": "#d4af37", "tertiary": "#eccc61", "surface-container-lowest": "#100e0c", "secondary-container": "#4d4846", "error": "#ffb4ab", "outline-variant": "#4d4635", "surface": "#151311", "on-error": "#690005", "surface-container-low": "#1d1b19" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-md": "1rem", "margin": "3rem", "space-sm": "0.5rem", "space-lg": "1.5rem", "gutter-mobile": "1rem", "space-xl": "2.5rem", "margin-mobile": "1.25rem", "gutter": "1.5rem", "space-xs": "0.25rem" }, "fontFamily": { "display-lg": ["Noto Serif"], "headline-lg-mobile": ["Noto Serif"], "headline-lg": ["Noto Serif"], "label-md": ["Plus Jakarta Sans"], "headline-sm": ["Noto Serif"], "display-lg-mobile": ["Noto Serif"], "body-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "headline-md": ["Noto Serif"], "label-sm": ["Plus Jakarta Sans"], "title-md": ["Plus Jakarta Sans"] }, "fontSize": { "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "0.02em", "fontWeight": "400" }], "headline-lg-mobile": ["26px", { "lineHeight": "34px", "letterSpacing": "0.01em", "fontWeight": "400" }], "headline-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "0.01em", "fontWeight": "400" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.06em", "fontWeight": "600" }], "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "500" }], "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "0.02em", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }], "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }], "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600" }], "title-md": ["18px", { "lineHeight": "26px", "fontWeight": "600" }] } } } };</script><style>@layer base { .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } } ::-webkit-scrollbar { display: none; }</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary min-h-screen flex flex-col relative"><div class="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle_at_50%_15%,rgba(212,175,55,0.08)_0%,transparent_60%)]"></div><header class="fixed top-0 w-full z-50 bg-[rgba(26,22,21,0.85)] backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.5)]"><div class="pt-safe"><div class="h-16 px-margin-mobile flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Tarot Italia Emblem Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCRw_K7e9fZZvpuP2OT5XhDp2Cvxj_GXGke131Rz-UGQDAMf6_TPmf5piNBVpllFLFUzG2KXxwlo0aJILIRXwI1C4oSaVAMHfTZQpOd5DMVuT9qEMfcIaX4lAi83-jImLf0EGKAedzYk7wtx1cIMbYYQm6OvTwA1eTMY2OR3AlfpKtj7P7TkEKpk_zNlaYrKtVaozud0AuPiadfKlkJiOZk27Bs4ZWz5N-Biil-UjP5"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-wide leading-none">Tarot Italia</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">M.T. Rogani</span></div></div><div class="flex items-center gap-space-sm"><a class="w-9 h-9 rounded-full bg-primary flex items-center justify-center transition-transform active:scale-95" data-path="area-riservata" href="#"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></a><button aria-label="Menu di navigazione" class="w-11 h-11 flex items-center justify-center rounded-lg text-primary hover:text-primary-fixed-dim active:scale-95 transition-all" onclick="document.getElementById('esoteric-drawer').classList.remove('translate-x-full'); document.getElementById('drawer-backdrop').classList.remove('opacity-0','pointer-events-none');" type="button"><span class="material-symbols-outlined text-[26px]">menu</span></button></div></div></div></header><div class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" id="drawer-backdrop" onclick="document.getElementById('esoteric-drawer').classList.add('translate-x-full'); this.classList.add('opacity-0','pointer-events-none');"></div><aside class="fixed top-0 right-0 bottom-0 z-50 w-[84%] max-w-sm bg-[rgba(32,28,26,0.96)] backdrop-blur-2xl shadow-[-10px_0_30px_rgba(0,0,0,0.8)] transform translate-x-full transition-transform duration-300 ease-out flex flex-col pt-safe pb-safe" id="esoteric-drawer"><div class="p-space-lg flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Tarot Italia Emblem Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCRw_K7e9fZZvpuP2OT5XhDp2Cvxj_GXGke131Rz-UGQDAMf6_TPmf5piNBVpllFLFUzG2KXxwlo0aJILIRXwI1C4oSaVAMHfTZQpOd5DMVuT9qEMfcIaX4lAi83-jImLf0EGKAedzYk7wtx1cIMbYYQm6OvTwA1eTMY2OR3AlfpKtj7P7TkEKpk_zNlaYrKtVaozud0AuPiadfKlkJiOZk27Bs4ZWz5N-Biil-UjP5"/><span class="font-headline-sm text-headline-sm text-primary">Tarot Italia</span></div><button class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary" onclick="document.getElementById('esoteric-drawer').classList.add('translate-x-full'); document.getElementById('drawer-backdrop').classList.add('opacity-0','pointer-events-none');" type="button"><span class="material-symbols-outlined text-[24px]">close</span></button></div><div class="h-px w-full bg-gradient-to-r from-transparent via-primary-container/40 to-transparent"></div><nav class="flex-1 overflow-y-auto px-space-md py-space-lg flex flex-col gap-space-xs"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="home" href="#"><span class="material-symbols-outlined text-primary text-[20px]">auto_awesome</span>Home</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="chi-sono" href="#"><span class="material-symbols-outlined text-primary text-[20px]">self_improvement</span>Chi Sono</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="consulti" href="#"><span class="material-symbols-outlined text-primary text-[20px]">visibility</span>Consulti</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="percorsi" href="#"><span class="material-symbols-outlined text-primary text-[20px]">explore</span>Percorsi</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="tarocchi-chat" href="#"><span class="material-symbols-outlined text-primary text-[20px]">forum</span>Tarocchi (Chat)</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="shop" href="#"><span class="material-symbols-outlined text-primary text-[20px]">shopping_bag</span>Shop</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="blog" href="#"><span class="material-symbols-outlined text-primary text-[20px]">menu_book</span>Blog</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="area-riservata" href="#"><span class="material-symbols-outlined text-primary text-[20px]">lock_open</span>Area Riservata</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface font-title-md text-title-md hover:bg-surface-variant/40 hover:text-primary transition-colors" data-path="contatti" href="#"><span class="material-symbols-outlined text-primary text-[20px]">contact_mail</span>Contatti</a></nav><div class="p-space-lg bg-surface-container-lowest/60"><p class="font-label-sm text-label-sm text-on-surface-variant text-center">Tarot Italia • Maria Teresa Rogani</p></div></aside><main class="flex flex-col relative w-full pt-16 pb-28 bg-surface"><div class="flex flex-col w-full px-margin-mobile gap-space-xl">
+<!-- Top Ambient Sacred Aura -->
+<div class="relative w-full pt-space-md flex flex-col items-center text-center">
+<!-- Hero Sacred Badge -->
+<div class="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-full bg-surface-container-high/80 backdrop-blur-md shadow-sm mb-space-lg">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">arrow_back_ios_new</span>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Maria Teresa Rogani • Operatore Olistico</span>
+</div>
+<!-- Editorial Hero Visual Placeholder with Atmospheric Scrim -->
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-space-lg shadow-xl bg-surface-container-low">
+<div class="w-full h-full bg-cover bg-center" data-alt="Mystical tarot sanctuary desk bathed in warm candlelight and volumetric golden incense smoke. Antique illuminated tarot deck gently fanned out on dark raw linen canvas, surrounded by rough quartz crystals, dried lavender sprigs, and a cast brass singing bowl in rich obsidian, charcoal and glowing antique gold tones, captured in fine-art moody chiaroscuro photography." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_DLsgTY81R4wvQ6XvWM5TOteBJVabI127Ngk5GVSjwJHvHh7tfN9FvxtY73ilcZXJdEf1DtFr63uUsijQ3QW5pE8_ue3H4i1Cas3pmHpM_ArceCgoIsQuQWjerumxihDCiBL0VfayQApWr7Apkj-hlbdObMTXmfFrhDnyGuKnGg8T3gNehXxaBM8nueAi_TPLXx4s61I6K00DltXvWJIDa4yT17BZknyebzRK5TQ')">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+<!-- Ritual Micro-Badge -->
+<div class="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[14px]">auto_awesome</span>
+          Lettura Evolutiva Simbolica
+        </span>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-primary font-semibold">
+          Sessione Individuale
+        </span>
+</div>
+</div>
+<!-- Main Headline & Subtitle -->
+<div class="flex flex-col gap-space-sm mb-space-lg">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-normal">
+        L'Arte Sacra dell'Ascolto Interiore
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-sm mx-auto leading-relaxed">
+        Un ponte archetipico tra conscio e inconscio per ritrovare orientamento, chiarezza interiore e autentica armonia evolutiva.
+      </p>
+</div>
+<!-- CTA Button Group -->
+<div class="flex flex-col w-full gap-space-sm">
+<a class="w-full min-h-[48px] rounded-lg bg-primary-container text-on-primary font-title-md text-title-md font-semibold flex items-center justify-center gap-space-xs shadow-[0_0_20px_rgba(212,175,55,0.28)] active:scale-[0.98] transition-all" data-path="prenota" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+        Prenota Consulto
+      </a>
+<a class="w-full min-h-[48px] rounded-lg bg-surface-container-high/60 backdrop-blur-md text-on-surface font-title-md text-title-md font-medium flex items-center justify-center gap-space-xs active:scale-[0.98] transition-all hover:bg-surface-container-high" data-path="percorsi" href="#">
+<span class="material-symbols-outlined text-primary text-[20px]">explore</span>
+        Scopri i Percorsi
+      </a>
+</div>
+<!-- Developer Dev Note Chip -->
+<div class="mt-space-md w-full flex items-center justify-center">
+<span class="px-space-sm py-1 rounded-full bg-surface-container-lowest font-label-sm text-[10px] text-outline font-mono tracking-tight">
+        /* Integration note: collegare a Supabase Auth &amp; Booking engine */
+      </span>
+</div>
+</div>
+<!-- Editorial Sacred Intro Card (Tier 1 Glass) -->
+<section class="relative w-full rounded-xl p-space-lg bg-surface-container/70 backdrop-blur-md shadow-lg flex flex-col gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[18px]">self_improvement</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider block">Il Metodo Olistico</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Specchio dell'Anima, Guida nel Presente</h2>
+</div>
+</div>
+<!-- Atmospheric Divider Gradient -->
+<div class="h-px w-full bg-gradient-to-r from-transparent via-primary-container/30 to-transparent"></div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+      I Tarocchi non svelano destini immutabili: sono antiche lenti simboliche attraverso cui osservare con limpidezza i nodi emotivi, le risorse taciute e le correnti del presente. Nel nostro spazio protetto, ogni arcano diviene uno specchio accogliente per ricongiungerti con il tuo centro vitale.
+    </p>
+<!-- Stat/Value Highlights -->
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-container-lowest/70 flex flex-col gap-0.5">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">15+</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant leading-snug">Anni di studio simbolico e transpersonale</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest/70 flex flex-col gap-0.5">
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">100%</span>
+<span class="font-label-sm text-[11px] text-on-surface-variant leading-snug">Spazio intimo, etico e confidenziale</span>
+</div>
+</div>
+</section>
+<!-- Consultations & Pathways Section -->
+<section class="flex flex-col gap-space-md w-full">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Incontri di Consapevolezza</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Esperienze Guidate</h2>
+</div>
+<a class="font-label-md text-label-md text-primary flex items-center gap-0.5" data-path="consulti" href="#">
+        Tutti
+        <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</a>
+</div>
+<!-- Vertical Stacked Rich Cards -->
+<div class="flex flex-col gap-space-md w-full">
+<!-- Card 1: Consulto Evolutivo Singolo -->
+<article class="relative rounded-xl overflow-hidden bg-surface-container/75 backdrop-blur-md shadow-md flex flex-col">
+<div class="relative w-full h-40 bg-surface-container-low">
+<div class="w-full h-full bg-cover bg-center" data-alt="Intimate top-down flat-lay of three ornate Tarot cards displayed on a deep bronze silk cloth. A soft crystal pendulum casts a fine shadow in ambient dusk lighting, flanked by a polished obsidian mirror and warm golden candlelight with gentle amber flare reflections." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC7W2U_C0hEdcQvgJy2dM1Cw9p01HinodKTXGgMd0GHKKrHLeKp8eTuqlcExltXJ3tnK8h-svSnzwyMv8H0w0T-jTZDkXfiU8k1aK3fJ2_kLdSkmDtFADElG3diyw0Lli9Ksr904yugkn8yzKkuI3crpgTXjXmBGLOdPpJT3DYdi_WXj16lU8mtIb2MfJ-v38TyyLLpeKUoWxP89k8vfPgKkGePdNIOL36JcTb_jwY')">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<div class="absolute top-3 right-3">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md font-label-sm text-label-sm text-primary font-semibold shadow-sm">
+              Disponibile Oggi
+            </span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-space-sm -mt-2 relative">
+<div class="flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">schedule</span>
+              60 Minuti
+            </span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">videocam</span>
+              Online o Studio
+            </span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">
+            Consulto Evolutivo degli Arcani
+          </h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+            Un'indagine approfondita sul momento presente per sciogliere dubbi decisionali, comprendere dinamiche relazionali e fare luce sulla direzione dell'anima.
+          </p>
+<div class="pt-space-xs flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Quota Rituale</span>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">€ 80</span>
+</div>
+<a class="px-space-md py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-semibold flex items-center gap-1 shadow-sm active:scale-95 transition-transform" data-path="prenota-consulto-evolutivo" href="#">
+              Approfondisci
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<!-- Card 2: Percorso Archetipi di Trasformazione -->
+<article class="relative rounded-xl overflow-hidden bg-surface-container/75 backdrop-blur-md shadow-md flex flex-col">
+<div class="relative w-full h-40 bg-surface-container-low">
+<div class="w-full h-full bg-cover bg-center" data-alt="An ethereal still life composition featuring a closed golden leatherbound grimoire, a selenite wand, and sacred geometry brass plates on an obsidian stone altar with fine golden particles floating in soft atmospheric morning light." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuByH_pxO95Ft6gJn1LS60Kn8R3fuXbTnv0XuuVKk0ApI9YjtHetwr2Njjr2q7hXMl7tt4L3pBhZZGInI6iwuuxexjxm7L67wFXGp6WBixlmbu1uOyFMa-OolzTd5LXFfCOJG_nhZMPubZiF4Bo7P23WB5P5-vRKXJvOh_tscrWvtnufHo3pwEjj5RBi7IPQo8QN_XgVhYAhmHTaly3UizALNWwFRXYlRqX7jyQGT2A')">
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<div class="absolute top-3 right-3">
+<span class="px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md font-label-sm text-label-sm text-tertiary-fixed font-semibold shadow-sm">
+              Posti Limitati
+            </span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-space-sm -mt-2 relative">
+<div class="flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">all_inclusive</span>
+              4 Sessioni
+            </span>
+<span>•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">psychology</span>
+              Tutoraggio Diretto
+            </span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">
+            Il Viaggio del Matto: Percorso di Rinascita
+          </h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">
+            Un percorso a moduli personalizzato per attraversare fasi di transizione, ritrovare autostima e allineare le scelte quotidiane ai tuoi valori più profondi.
+          </p>
+<div class="pt-space-xs flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Ciclo Completo</span>
+<span class="font-headline-sm text-headline-sm text-primary font-semibold">€ 290</span>
+</div>
+<a class="px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md font-medium flex items-center gap-1 active:scale-95 transition-transform hover:bg-surface-bright" data-path="percorso-viaggio-matto" href="#">
+              Dettagli
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+</div>
+<!-- Sacred Ethical Callout Banner -->
+<div class="mt-space-xs p-space-md rounded-xl bg-surface-container-low/90 backdrop-blur-md flex items-start gap-space-sm shadow-inner">
+<div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary font-semibold tracking-wide">Patto Etico Deontologico</span>
+<p class="font-body-md text-body-md text-on-surface-variant italic mt-0.5">
+          “Nessuna predizione del futuro, solo consapevolezza ed evoluzione dell'essere.”
+        </p>
+</div>
+</div>
+</section>
+<!-- Interactive Question Drawer Micro-Widget -->
+<section class="rounded-xl p-space-lg bg-surface-container/60 backdrop-blur-md shadow-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Spunti di Riflessione</span>
+<h3 class="font-title-md text-title-md text-on-surface">Cosa ti sta chiamando ora?</h3>
+</div>
+<span class="material-symbols-outlined text-primary text-[24px]">balance</span>
+</div>
+<div class="flex flex-wrap gap-space-xs">
+<button class="affirmation-chip px-space-md py-2 rounded-full bg-surface-container-high/80 text-on-surface font-label-md text-label-md transition-colors active:scale-95 text-left" onclick="selectAffirmation(this, 'Chiarezza nelle Relazioni')" type="button">
+        Chiarezza Relazionale
+      </button>
+<button class="affirmation-chip px-space-md py-2 rounded-full bg-surface-container-high/80 text-on-surface font-label-md text-label-md transition-colors active:scale-95 text-left" onclick="selectAffirmation(this, 'Blocchi nel Lavoro')" type="button">
+        Svolta Professionale
+      </button>
+<button class="affirmation-chip px-space-md py-2 rounded-full bg-surface-container-high/80 text-on-surface font-label-md text-label-md transition-colors active:scale-95 text-left" onclick="selectAffirmation(this, 'Pace Emotiva')" type="button">
+        Pace Emotiva
+      </button>
+</div>
+<div class="hidden p-space-sm rounded-lg bg-surface-container-lowest/80 text-on-surface-variant font-body-md text-body-md" id="reflection-response">
+<span class="text-primary font-semibold block mb-1">Spunto per la tua meditazione:</span>
+<span id="reflection-text"></span>
+</div>
+</section>
+<!-- Client-side Micro-Interaction Script -->
+<script>
+    function selectAffirmation(button, topic) {
+      document.querySelectorAll('.affirmation-chip').forEach(btn => {
+        btn.classList.remove('bg-primary-container', 'text-on-primary');
+        btn.classList.add('bg-surface-container-high/80', 'text-on-surface');
+      });
+      button.classList.remove('bg-surface-container-high/80', 'text-on-surface');
+      button.classList.add('bg-primary-container', 'text-on-primary');
+
+      const responseBox = document.getElementById('reflection-response');
+      const textElem = document.getElementById('reflection-text');
+      
+      const hints = {
+        'Chiarezza nelle Relazioni': 'L\'Amante ti invita a guardare ciò che rifiuti di te nell\'altro. Quale confine gentile devi tracciare oggi?',
+        'Blocchi nel Lavoro': 'L\'Imperatore e la Ruota indicano che la disciplina interiore precede ogni successo esterno. Su quale abitudine poggiano i tuoi obiettivi?',
+        'Pace Emotiva': 'La Stella ricorda che dopo ogni notte scura sgorga una fonte d\'acqua viva. Permetti al respiro di ammorbidire le tensioni.'
+      };
+
+      textElem.textContent = hints[topic] || 'Ascolta il silenzio che precede la tua prossima scelta.';
+      responseBox.classList.remove('hidden');
+    }
+  </script>
+</div></main><nav class="fixed bottom-0 w-full z-50 pb-safe px-margin-mobile pointer-events-none" data-active-classes="text-primary bg-primary/10 shadow-[0_0_16px_rgba(212,175,55,0.25)]"><div class="pointer-events-auto max-w-sm mx-auto mb-space-sm rounded-full bg-[rgba(26,22,21,0.85)] backdrop-blur-xl shadow-[0_12px_32px_rgba(0,0,0,0.65)] p-1.5 flex items-center justify-between gap-1"><a aria-label="WhatsApp" class="flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 rounded-full text-on-surface-variant hover:text-primary transition-all duration-200" data-path="contatti-whatsapp" href="#"><span class="material-symbols-outlined text-[20px]">chat</span><span class="font-label-sm text-[10px] tracking-tight">WhatsApp</span></a><a aria-label="Telegram" class="flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 rounded-full text-on-surface-variant hover:text-primary transition-all duration-200" data-path="contatti-telegram" href="#"><span class="material-symbols-outlined text-[20px]">send</span><span class="font-label-sm text-[10px] tracking-tight">Telegram</span></a><a aria-label="Telefono" class="flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 rounded-full text-on-surface-variant hover:text-primary transition-all duration-200" data-path="contatti-telefono" href="#"><span class="material-symbols-outlined text-[20px]">call</span><span class="font-label-sm text-[10px] tracking-tight">Telefono</span></a><a aria-label="Email" class="flex-1 flex flex-col items-center justify-center min-h-[44px] py-1 rounded-full text-on-surface-variant hover:text-primary transition-all duration-200" data-path="contatti-email" href="#"><span class="material-symbols-outlined text-[20px]">mail</span><span class="font-label-sm text-[10px] tracking-tight">Email</span></a></div></nav></body></html>
