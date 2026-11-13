@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+
+.vite
+.vercel
+supabase/.temp/
+public/logo-3d/
+*.glb
+*.obj
+*.mtl

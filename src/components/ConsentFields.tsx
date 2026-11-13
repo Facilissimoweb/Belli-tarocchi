@@ -1,0 +1,87 @@
+import { siteContent } from "../data/siteContent";
+import type { Consents } from "../lib/storage";
+
+const { auth, legal } = siteContent;
+
+type Props = {
+  consents: Consents;
+  onChange: (next: Consents) => void;
+  onPrivacy?: () => void;
+  onVendita?: () => void;
+};
+
+export function ConsentFields({ consents, onChange, onPrivacy, onVendita }: Props) {
+  function toggle(key: keyof Consents) {
+    onChange({ ...consents, [key]: !consents[key] });
+  }
+
+  return (
+    <fieldset className="flex flex-col gap-5">
+      <ConsentRow
+        checked={consents.privacy}
+        onChange={() => toggle("privacy")}
+        label={auth.consensi.privacyCookie}
+        linkLabel={auth.consensi.leggiPrivacy}
+        href="https://www.tarotitalia.com/privacy.html"
+        onOpen={onPrivacy}
+      />
+      <ConsentRow checked={consents.adult} onChange={() => toggle("adult")} label={auth.consensi.adulto} />
+      <ConsentRow
+        checked={consents.refund}
+        onChange={() => toggle("refund")}
+        label={auth.consensi.rimborso}
+        linkLabel={legal.vendita.leggi}
+        onOpen={onVendita}
+      />
+    </fieldset>
+  );
+}
+
+function ConsentRow({
+  checked,
+  onChange,
+  label,
+  linkLabel,
+  href,
+  onOpen,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+  linkLabel?: string;
+  href?: string;
+  onOpen?: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="flex items-start gap-3 text-[0.75rem] leading-[1.7] text-ink/70">
+        <input
+          type="checkbox"
+          className="mt-0.5 shrink-0 accent-ink"
+          checked={checked}
+          onChange={onChange}
+          required
+        />
+        <span>{label}</span>
+      </label>
+      {linkLabel && href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-7 text-left text-[0.6875rem] underline decoration-ember-soft/50 underline-offset-4 hover:text-ink"
+        >
+          {linkLabel}
+        </a>
+      ) : onOpen && linkLabel ? (
+        <button
+          type="button"
+          className="ml-7 text-left text-[0.6875rem] underline decoration-ember-soft/50 underline-offset-4 hover:text-ink"
+          onClick={onOpen}
+        >
+          {linkLabel}
+        </button>
+      ) : null}
+    </div>
+  );
+}

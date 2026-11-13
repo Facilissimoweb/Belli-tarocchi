@@ -1,227 +1,250 @@
-import { useEffect, useState } from 'react';
-import { BottomNav } from './components/BottomNav';
-import { Drawer } from './components/Drawer';
-import { Header } from './components/Header';
-import { AreaRiservataPage } from './pages/AreaRiservataPage';
-import { BlogPage } from './pages/BlogPage';
-import { ChiSonoPage } from './pages/ChiSonoPage';
-import { ConsultiPage } from './pages/ConsultiPage';
-import { ContattiPage } from './pages/ContattiPage';
-import { HomePage } from './pages/HomePage';
-import { PercorsiPage } from './pages/PercorsiPage';
-import { PrenotaPage } from './pages/PrenotaPage';
-import { ShopPage } from './pages/ShopPage';
-import { TarocchiChatPage } from './pages/TarocchiChatPage';
-import {
-  BookingRecord,
-  ClientProfile,
-  ContactChannel,
-  JournalEntry,
-  OrderRecord,
-  RoutePath,
-} from './types';
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { ConsentProvider } from "./context/ConsentContext";
+import { PercorsiProvider } from "./context/PercorsiContext";
+import { LanguageProvider } from "./context/LanguageContext";
+import { Layout } from "./components/Layout";
+import { CookieBanner } from "./components/CookieBanner";
+import { AuthModal } from "./components/AuthModal";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Home } from "./pages/Home";
+import { ComingSoon } from "./components/ComingSoon";
+import { StudioContactDock } from "./components/ContactDock";
+import { shopLive } from "./lib/launchFlags";
+import { useSiteAccess } from "./lib/useSiteAccess";
+import { AccessibilityPanel } from "./components/AccessibilityWidget";
 
-function readStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
+const PercorsiModal = lazy(() =>
+  import("./components/PercorsiModal").then((m) => ({ default: m.PercorsiModal })),
+);
+const TarotChat = lazy(() =>
+  import("./components/TarotChat").then((m) => ({ default: m.TarotChat })),
+);
+const UtilityCapsule = lazy(() =>
+  import("./components/UtilityCapsule").then((m) => ({ default: m.UtilityCapsule })),
+);
+
+const ChiSono = lazy(() => import("./pages/ChiSono").then((m) => ({ default: m.ChiSono })));
+const Arcani = lazy(() => import("./pages/Arcani").then((m) => ({ default: m.Arcani })));
+const ArcanoDetail = lazy(() =>
+  import("./pages/Arcani").then((m) => ({ default: m.ArcanoDetail })),
+);
+const ArcaniMinori = lazy(() =>
+  import("./pages/ArcaniMinori").then((m) => ({ default: m.ArcaniMinori })),
+);
+const ArcanoMinoreDetail = lazy(() =>
+  import("./pages/ArcaniMinori").then((m) => ({ default: m.ArcanoMinoreDetail })),
+);
+const Consulti = lazy(() => import("./pages/Consulti").then((m) => ({ default: m.Consulti })));
+const Percorsi = lazy(() => import("./pages/Percorsi").then((m) => ({ default: m.Percorsi })));
+const Blog = lazy(() => import("./pages/Blog").then((m) => ({ default: m.Blog })));
+const Contatti = lazy(() => import("./pages/Contatti").then((m) => ({ default: m.Contatti })));
+const Carrello = lazy(() => import("./pages/Carrello").then((m) => ({ default: m.Carrello })));
+const Shop = lazy(() => import("./pages/Shop").then((m) => ({ default: m.Shop })));
+const Login = lazy(() => import("./pages/Login").then((m) => ({ default: m.Login })));
+const Admin = lazy(() => import("./pages/Admin").then((m) => ({ default: m.Admin })));
+const Riservata = lazy(() => import("./pages/Riservata").then((m) => ({ default: m.Riservata })));
+const NonTrovata = lazy(() =>
+  import("./pages/NonTrovata").then((m) => ({ default: m.NonTrovata })),
+);
+const Privacy = lazy(() => import("./pages/Privacy").then((m) => ({ default: m.Privacy })));
+const Disclaimer = lazy(() =>
+  import("./pages/Disclaimer").then((m) => ({ default: m.Disclaimer })),
+);
+const TerminiDiServizio = lazy(() =>
+  import("./pages/TerminiDiServizio").then((m) => ({ default: m.TerminiDiServizio })),
+);
+
+function RouteFallback() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center bg-ivory px-6 text-sm text-ink/60" aria-hidden>
+      …
+    </div>
+  );
 }
 
 export default function App() {
-  const [currentPath, setCurrentPath] = useState<RoutePath>('home');
-  const [selectedServiceId, setSelectedServiceId] = useState<
-    string | undefined
-  >(undefined);
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-  const [activeChannel, setActiveChannel] = useState<ContactChannel | null>(
-    null
-  );
-
-  const [profile, setProfile] = useState<ClientProfile>(() =>
-    readStorage<ClientProfile>('ti_profile', {
-      name: '',
-      email: '',
-      phone: '',
-      isSignedIn: false,
-    })
-  );
-
-  const [bookings, setBookings] = useState<BookingRecord[]>(() =>
-    readStorage<BookingRecord[]>('ti_bookings', [])
-  );
-
-  const [journal, setJournal] = useState<JournalEntry[]>(() =>
-    readStorage<JournalEntry[]>('ti_journal', [])
-  );
-
-  const [orders, setOrders] = useState<OrderRecord[]>(() =>
-    readStorage<OrderRecord[]>('ti_orders', [])
-  );
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('ti_profile', JSON.stringify(profile));
-    } catch {
-      // ignore storage quota errors
-    }
-  }, [profile]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('ti_bookings', JSON.stringify(bookings));
-    } catch {
-      // ignore storage quota errors
-    }
-  }, [bookings]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('ti_journal', JSON.stringify(journal));
-    } catch {
-      // ignore storage quota errors
-    }
-  }, [journal]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('ti_orders', JSON.stringify(orders));
-    } catch {
-      // ignore storage quota errors
-    }
-  }, [orders]);
-
-  const handleNavigate = (path: RoutePath, serviceId?: string) => {
-    setSelectedServiceId(serviceId);
-    setCurrentPath(path);
-    if (path !== 'contatti') {
-      setActiveChannel(null);
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSelectBottomChannel = (channel: ContactChannel) => {
-    setActiveChannel(channel);
-    setCurrentPath('contatti');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleCreateBooking = (booking: BookingRecord) => {
-    setBookings((prev) => [booking, ...prev]);
-    if (!profile.isSignedIn) {
-      setProfile({
-        name: booking.clientName,
-        email: booking.clientEmail,
-        phone: booking.clientPhone,
-        isSignedIn: true,
-      });
-    }
-  };
-
-  const handleCancelBooking = (bookingId: string) => {
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === bookingId ? { ...b, status: 'Annullato' } : b
-      )
-    );
-  };
-
-  const handleSaveJournal = (entry: JournalEntry) => {
-    setJournal((prev) => [entry, ...prev]);
-  };
-
-  const handleDeleteJournal = (entryId: string) => {
-    setJournal((prev) => prev.filter((j) => j.id !== entryId));
-  };
-
-  const handleCreateOrder = (order: OrderRecord) => {
-    setOrders((prev) => [order, ...prev]);
-  };
+  const unlocked = useSiteAccess();
+  if (!unlocked) return <ComingSoon />;
 
   return (
-    <div className="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary min-h-screen flex flex-col relative">
-      <div className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(circle_at_50%_15%,rgba(212,175,55,0.08)_0%,transparent_60%)]" />
-
-      <Header
-        onNavigate={(path) => handleNavigate(path)}
-        onOpenDrawer={() => setDrawerOpen(true)}
-        isSignedIn={profile.isSignedIn}
-      />
-
-      <Drawer
-        isOpen={drawerOpen}
-        currentPath={currentPath}
-        onClose={() => setDrawerOpen(false)}
-        onNavigate={(path) => handleNavigate(path)}
-      />
-
-      <main className="flex flex-col relative w-full pt-16 pb-28 bg-surface flex-1">
-        <div className="max-w-md mx-auto w-full">
-          {currentPath === 'home' && (
-            <HomePage onNavigate={handleNavigate} />
-          )}
-          {currentPath === 'chi-sono' && (
-            <ChiSonoPage onNavigate={handleNavigate} />
-          )}
-          {currentPath === 'consulti' && (
-            <ConsultiPage onNavigate={handleNavigate} />
-          )}
-          {currentPath === 'percorsi' && (
-            <PercorsiPage
-              initialPathwayId={selectedServiceId}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {currentPath === 'prenota' && (
-            <PrenotaPage
-              initialServiceId={selectedServiceId}
-              profile={profile}
-              onCreateBooking={handleCreateBooking}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {currentPath === 'tarocchi-chat' && (
-            <TarocchiChatPage
-              onSaveJournal={handleSaveJournal}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {currentPath === 'shop' && (
-            <ShopPage
-              onCreateOrder={handleCreateOrder}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {currentPath === 'blog' && (
-            <BlogPage onNavigate={handleNavigate} />
-          )}
-          {currentPath === 'area-riservata' && (
-            <AreaRiservataPage
-              profile={profile}
-              bookings={bookings}
-              journal={journal}
-              orders={orders}
-              onSaveProfile={setProfile}
-              onCancelBooking={handleCancelBooking}
-              onDeleteJournal={handleDeleteJournal}
-              onNavigate={handleNavigate}
-            />
-          )}
-          {currentPath === 'contatti' && (
-            <ContattiPage
-              highlightedChannel={activeChannel}
-              onSelectChannel={setActiveChannel}
-            />
-          )}
-        </div>
-      </main>
-
-      <BottomNav
-        activeChannel={activeChannel}
-        onSelectChannel={handleSelectBottomChannel}
-      />
-    </div>
+    <AuthProvider>
+      <ConsentProvider>
+        <PercorsiProvider>
+        <LanguageProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route
+                path="/chi-sono"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <ChiSono />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/arcani"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Arcani />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/arcani/:slug"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <ArcanoDetail />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/arcani-minori"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <ArcaniMinori />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/arcani-minori/:slug"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <ArcanoMinoreDetail />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/consulti"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Consulti />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/percorsi"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Percorsi />
+                  </Suspense>
+                }
+              />
+              <Route path="/rituali" element={<Navigate to="/percorsi" replace />} />
+              <Route
+                path="/blog"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Blog />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/contatti"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Contatti />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/carrello"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Carrello />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/shop"
+                element={
+                  shopLive() ? (
+                    <Suspense fallback={<RouteFallback />}>
+                      <Shop />
+                    </Suspense>
+                  ) : (
+                    <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route path="/corsi" element={<Navigate to={shopLive() ? "/shop" : "/"} replace />} />
+              <Route
+                path="/login"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Login />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Admin />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/riservata"
+                element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<RouteFallback />}>
+                      <Riservata />
+                    </Suspense>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/privacy"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Privacy />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/disclaimer"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <Disclaimer />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/termini-di-servizio"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <TerminiDiServizio />
+                  </Suspense>
+                }
+              />
+              <Route path="/termini" element={<Navigate to="/termini-di-servizio" replace />} />
+              <Route
+                path="*"
+                element={
+                  <Suspense fallback={<RouteFallback />}>
+                    <NonTrovata />
+                  </Suspense>
+                }
+              />
+            </Route>
+          </Routes>
+          <CookieBanner />
+          <AuthModal />
+          <StudioContactDock />
+          <Suspense fallback={null}>
+            <PercorsiModal />
+            <UtilityCapsule />
+            <TarotChat />
+            <AccessibilityPanel />
+          </Suspense>
+        </BrowserRouter>
+        </LanguageProvider>
+        </PercorsiProvider>
+      </ConsentProvider>
+    </AuthProvider>
   );
 }
