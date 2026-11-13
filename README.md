@@ -18,6 +18,10 @@ cp .env.example .env.local
 npm run dev
 ```
 
+## Backend Supabase
+
+La cartella `supabase/` include schema/migrations e le Edge Functions (Stripe checkout/webhook, mail, download digitale, ops-health). Su un progetto Supabase già esistente non serve ricreare lo schema: punta le stesse env. Su un progetto nuovo, applica migrations e deploy delle functions.
+
 ## Note migrazione
 
 - Pagine e componenti di produzione sono in `src/pages` e `src/components`.
