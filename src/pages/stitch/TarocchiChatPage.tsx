@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { CONTACT_INFO, MAJOR_ARCANA } from '../data/tarotData';
-import { ArcanaCard, ChatMessage, JournalEntry, RoutePath } from '../types';
+import { CONTACT_INFO, MAJOR_ARCANA } from '../../data/tarotData';
+import type { ArcanaCard, ChatMessage, JournalEntry, RoutePath } from '../../types';
 
 interface TarocchiChatPageProps {
   onSaveJournal: (entry: JournalEntry) => void;

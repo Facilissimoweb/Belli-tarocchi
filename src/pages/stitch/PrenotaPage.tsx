@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { CONSULTATIONS, PATHWAYS } from '../data/tarotData';
-import { BookingRecord, ClientProfile, RoutePath } from '../types';
+import { CONSULTATIONS, PATHWAYS } from '../../data/tarotData';
+import type { BookingRecord, ClientProfile, RoutePath } from '../../types';
 
 interface PrenotaPageProps {
   initialServiceId?: string;

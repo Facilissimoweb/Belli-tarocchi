@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { PATHWAYS } from '../data/tarotData';
-import { RoutePath } from '../types';
+import { PATHWAYS } from '../../data/tarotData';
+import type { RoutePath } from '../../types';
 
 interface PercorsiPageProps {
   initialPathwayId?: string;

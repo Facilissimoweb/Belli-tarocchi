@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { BLOG_ARTICLES } from '../data/tarotData';
-import { BlogArticle, RoutePath } from '../types';
+import { BLOG_ARTICLES } from '../../data/tarotData';
+import type { BlogArticle, RoutePath } from '../../types';
 
 interface BlogPageProps {
   onNavigate: (path: RoutePath) => void;
