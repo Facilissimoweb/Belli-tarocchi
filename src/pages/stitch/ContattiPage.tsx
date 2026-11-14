@@ -1,10 +1,29 @@
 import React, { useState } from 'react';
-import { CONTACT_INFO } from '../../data/tarotData';
+import { siteContent } from '../../data/siteContent';
+import { openMailto } from '../../lib/mailto';
+import {
+  getPhoneHref,
+  getWhatsAppNumber,
+  telegramHref,
+  whatsappChatHref,
+} from '../../lib/whatsapp';
 import type { ContactChannel } from '../../types';
 
 interface ContattiPageProps {
   highlightedChannel: ContactChannel | null;
   onSelectChannel: (channel: ContactChannel) => void;
+}
+
+const { brand, cta, pages } = siteContent;
+const contatti = pages.contatti;
+
+function formatWhatsAppDisplay(raw: string) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('39') && digits.length >= 11) {
+    const local = digits.slice(2);
+    return `+39 ${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6, 8)} ${local.slice(8)}`.trim();
+  }
+  return brand.whatsapp;
 }
 
 export const ContattiPage: React.FC<ContattiPageProps> = ({
@@ -14,8 +33,13 @@ export const ContattiPage: React.FC<ContattiPageProps> = ({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [oggetto, setOggetto] = useState('');
   const [message, setMessage] = useState('');
-  const [sent, setSent] = useState(false);
+
+  const phoneDisplay = formatWhatsAppDisplay(getWhatsAppNumber() || brand.whatsapp);
+  const phoneHref = getPhoneHref() || `tel:${brand.whatsapp.replace(/\s/g, '')}`;
+  const waHref = whatsappChatHref();
+  const tgHref = telegramHref();
 
   const handleCopy = (key: string, value: string) => {
     navigator.clipboard?.writeText(value);
@@ -26,10 +50,16 @@ export const ContattiPage: React.FC<ContattiPageProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) return;
-    setSent(true);
-    setName('');
-    setEmail('');
-    setMessage('');
+    const body = [
+      `${contatti.form.nome}: ${name.trim()}`,
+      `${contatti.form.email}: ${email.trim()}`,
+      '',
+      message.trim(),
+    ].join('\n');
+    openMailto(brand.email, {
+      subject: (oggetto.trim() || contatti.form.oggetto).slice(0, 120),
+      body,
+    });
   };
 
   const channelCards: {
@@ -40,42 +70,45 @@ export const ContattiPage: React.FC<ContattiPageProps> = ({
     icon: string;
     href: string;
     cta: string;
+    external?: boolean;
   }[] = [
     {
       id: 'whatsapp',
-      title: 'WhatsApp Diretto',
-      value: CONTACT_INFO.whatsappNumber,
-      subtitle: 'Risposta rapida per info su disponibilità e consulti',
+      title: cta.whatsappRapido,
+      value: phoneDisplay,
+      subtitle: brand.modalitaLettura,
       icon: 'chat',
-      href: CONTACT_INFO.whatsappLink,
-      cta: 'Apri Chat',
+      href: waHref,
+      cta: cta.whatsappRapido,
+      external: true,
     },
     {
       id: 'telegram',
-      title: 'Telegram Riservato',
-      value: CONTACT_INFO.telegramHandle,
-      subtitle: 'Canale diretto e note vocali di orientamento',
+      title: cta.telegram,
+      value: phoneDisplay,
+      subtitle: contatti.appuntamento,
       icon: 'send',
-      href: CONTACT_INFO.telegramLink,
-      cta: 'Scrivi su Telegram',
+      href: tgHref,
+      cta: cta.telegram,
+      external: true,
     },
     {
       id: 'telefono',
-      title: 'Contatto Telefonico',
-      value: CONTACT_INFO.phoneDisplay,
-      subtitle: CONTACT_INFO.hours,
+      title: cta.chiama,
+      value: phoneDisplay,
+      subtitle: contatti.appuntamento,
       icon: 'call',
-      href: CONTACT_INFO.phoneHref,
-      cta: 'Chiama Ora',
+      href: phoneHref,
+      cta: cta.chiama,
     },
     {
       id: 'email',
-      title: 'Email dello Studio',
-      value: CONTACT_INFO.email,
-      subtitle: 'Richieste percorsi, collaborazioni e buoni regalo',
+      title: contatti.form.email,
+      value: brand.email,
+      subtitle: contatti.intro,
       icon: 'mail',
-      href: CONTACT_INFO.emailHref,
-      cta: 'Invia Email',
+      href: `mailto:${brand.email}`,
+      cta: cta.scriviStudio,
     },
   ];
 
@@ -87,18 +120,17 @@ export const ContattiPage: React.FC<ContattiPageProps> = ({
             contact_mail
           </span>
           <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest">
-            Contatti &amp; Accoglienza
+            {contatti.kicker}
           </span>
         </div>
         <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-normal">
-          Parliamo Insieme
+          {contatti.titolo}
         </h1>
         <p className="font-body-md text-body-md text-on-surface-variant max-w-sm leading-relaxed">
-          Scegli il canale che senti più vicino per chiedere informazioni o fissare il tuo spazio di ascolto.
+          {contatti.intro}
         </p>
       </div>
 
-      {/* Direct Channels */}
       <div className="flex flex-col gap-space-sm">
         {channelCards.map((card) => {
           const isHighlighted = highlightedChannel === card.id;
@@ -119,7 +151,7 @@ export const ContattiPage: React.FC<ContattiPageProps> = ({
                       {card.icon}
                     </span>
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col text-left">
                     <h2 className="font-title-md text-[16px] text-on-surface">
                       {card.title}
                     </h2>
@@ -139,17 +171,13 @@ export const ContattiPage: React.FC<ContattiPageProps> = ({
                   {copiedKey === card.id ? 'Copiato' : 'Copia'}
                 </button>
               </div>
-              <p className="font-body-md text-body-md text-on-surface-variant">
+              <p className="font-body-md text-body-md text-on-surface-variant text-left">
                 {card.subtitle}
               </p>
               <a
                 href={card.href}
-                target={
-                  card.id === 'whatsapp' || card.id === 'telegram'
-                    ? '_blank'
-                    : undefined
-                }
-                rel="noreferrer"
+                target={card.external ? '_blank' : undefined}
+                rel={card.external ? 'noreferrer' : undefined}
                 className="w-full py-2.5 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md font-semibold flex items-center justify-center gap-1 active:scale-[0.98] transition-transform"
               >
                 {card.cta}
@@ -162,86 +190,73 @@ export const ContattiPage: React.FC<ContattiPageProps> = ({
         })}
       </div>
 
-      {/* Studio Address Card */}
-      <div className="rounded-xl p-space-md bg-surface-container-low/90 backdrop-blur-md flex items-start gap-space-sm">
+      <div className="rounded-xl p-space-md bg-surface-container-low/90 backdrop-blur-md flex items-start gap-space-sm text-left">
         <span className="material-symbols-outlined text-primary text-[20px] mt-0.5">
           location_on
         </span>
         <div className="flex flex-col">
           <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-            Studio in Presenza
+            {contatti.recapitiTitolo}
           </span>
           <span className="font-body-md text-body-md text-on-surface">
-            {CONTACT_INFO.studioAddress}
+            {contatti.sede}
           </span>
           <span className="font-label-sm text-label-sm text-on-surface-variant mt-0.5">
-            {CONTACT_INFO.hours}
+            {contatti.appuntamento}
+          </span>
+          <span className="font-body-md text-body-md text-on-surface-variant mt-1">
+            {brand.studioDiTeresa}
           </span>
         </div>
       </div>
 
-      {/* Contact Form */}
-      <section className="rounded-xl p-space-lg bg-surface-container/70 backdrop-blur-md shadow-md flex flex-col gap-space-sm">
+      <section className="rounded-xl p-space-lg bg-surface-container/70 backdrop-blur-md shadow-md flex flex-col gap-space-sm text-left">
         <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-          Messaggio Diretto
+          {contatti.moduloKicker}
         </span>
         <h2 className="font-headline-sm text-headline-sm text-on-surface">
-          Scrivi allo Studio
+          {contatti.moduloTitolo}
         </h2>
 
-        {sent ? (
-          <div className="p-space-md rounded-lg bg-surface-container-lowest/80 flex flex-col gap-space-xs">
-            <span className="font-title-md text-[15px] text-primary flex items-center gap-1">
-              <span className="material-symbols-outlined text-[18px]">
-                verified
-              </span>
-              Messaggio Inviato
-            </span>
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              Grazie per aver scritto. Maria Teresa Rogani ti risponderà entro 24 ore lavorative.
-            </p>
-            <button
-              type="button"
-              onClick={() => setSent(false)}
-              className="self-start font-label-md text-label-md text-primary pt-1"
-            >
-              Invia un altro messaggio
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-space-sm">
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Il tuo nome"
-              className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
-            />
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="La tua email"
-              className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
-            />
-            <textarea
-              rows={3}
-              required
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Come posso aiutarti?"
-              className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary resize-none"
-            />
-            <button
-              type="submit"
-              className="w-full min-h-[48px] rounded-lg bg-primary-container text-on-primary font-title-md text-title-md font-semibold flex items-center justify-center gap-1"
-            >
-              Invia Richiesta
-            </button>
-          </form>
-        )}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-space-sm">
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={contatti.form.nome}
+            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
+          />
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={contatti.form.email}
+            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
+          />
+          <input
+            type="text"
+            value={oggetto}
+            onChange={(e) => setOggetto(e.target.value)}
+            placeholder={contatti.form.oggetto}
+            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
+          />
+          <textarea
+            rows={3}
+            required
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder={contatti.form.messaggio}
+            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary resize-none"
+          />
+          <button
+            type="submit"
+            className="w-full min-h-[48px] rounded-lg bg-primary-container text-on-primary font-title-md text-title-md font-semibold flex items-center justify-center gap-1"
+          >
+            {contatti.form.invia}
+          </button>
+        </form>
       </section>
     </div>
   );
