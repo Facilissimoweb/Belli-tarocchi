@@ -1,4 +1,5 @@
 import React from 'react';
+import { siteContent } from '../data/siteContent';
 import type { RoutePath } from '../types';
 
 interface HeaderProps {
@@ -6,6 +7,8 @@ interface HeaderProps {
   onOpenDrawer: () => void;
   isSignedIn: boolean;
 }
+
+const { brand, nav } = siteContent;
 
 export const Header: React.FC<HeaderProps> = ({
   onNavigate,
@@ -22,16 +25,16 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-space-sm text-left focus:outline-none active:scale-[0.99] transition-transform"
           >
             <img
-              alt="Tarot Italia Emblem Logo"
+              alt={brand.wordmark}
               className="h-8 w-auto object-contain"
-              src="/logo.png"
+              src={brand.logoNav || '/logo.png'}
             />
             <div className="flex flex-col">
               <span className="font-headline-sm text-headline-sm text-primary tracking-wide leading-none">
-                Tarot Italia
+                {brand.wordmark}
               </span>
               <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">
-                M.T. Rogani
+                {brand.titolare}
               </span>
             </div>
           </button>
@@ -39,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-space-sm">
             <button
               type="button"
-              aria-label="Area Riservata"
+              aria-label={nav.riservata}
               onClick={() => onNavigate('area-riservata')}
               className="relative w-9 h-9 rounded-full bg-primary flex items-center justify-center transition-transform active:scale-95"
             >

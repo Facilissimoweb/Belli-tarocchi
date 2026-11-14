@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { CONSULTATIONS, PATHWAYS } from '../../data/tarotData';
+import { siteContent } from '../../data/siteContent';
+import { TARIFFE } from '../../data/catalogo';
+import { conPeso } from '../../components/Prosa';
 import type { BookingRecord, ClientProfile, RoutePath } from '../../types';
 
 interface PrenotaPageProps {
@@ -9,8 +11,54 @@ interface PrenotaPageProps {
   onNavigate: (path: RoutePath) => void;
 }
 
-const ALL_SERVICES = [...CONSULTATIONS, ...PATHWAYS];
-const TIME_SLOTS = ['09:30', '11:00', '14:30', '16:00', '18:00'];
+const { brand, consulti, cta, nav, percorsi } = siteContent;
+
+type BookableService = {
+  id: string;
+  title: string;
+  duration: string;
+  modality: string;
+  price: number | null;
+  kind: 'consulto' | 'percorso';
+};
+
+const CONSULT_SERVICES: BookableService[] = TARIFFE.map((tariffa) => {
+  const opzione = consulti.opzioni.find((o) => o.id === tariffa.id);
+  return {
+    id: tariffa.id,
+    title: opzione?.titolo ?? tariffa.name,
+    duration: `${tariffa.minutes} min`,
+    modality: `${consulti.modalita.presenza} / ${consulti.modalita.distanza}`,
+    price: tariffa.price,
+    kind: 'consulto',
+  };
+});
+
+const PATHWAY_SERVICES: BookableService[] = percorsi.tipologie.map((tipologia) => ({
+  id: tipologia.id,
+  title: tipologia.titolo,
+  duration: percorsi.sezione,
+  modality: brand.modalitaLettura,
+  price: null,
+  kind: 'percorso',
+}));
+
+const ALL_SERVICES = [...CONSULT_SERVICES, ...PATHWAY_SERVICES];
+
+const MODALITIES = [
+  {
+    id: 'distanza' as const,
+    label: `${consulti.modalita.distanza} — ${consulti.modalita.distanzaNota}`,
+  },
+  {
+    id: 'presenza' as const,
+    label: `${consulti.modalita.presenza} — ${consulti.modalita.presenzaNota}`,
+  },
+] as const;
+
+type ModalityId = (typeof MODALITIES)[number]['id'];
+
+const TIME_SLOTS = ['09:30', '11:00', '14:30', '16:00', '18:00', '19:00', '20:00'];
 
 function buildUpcomingDays() {
   const days: { iso: string; label: string; weekday: string }[] = [];
@@ -49,13 +97,11 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
   const [selectedServiceId, setSelectedServiceId] = useState<string>(
     initialServiceId && ALL_SERVICES.some((s) => s.id === initialServiceId)
       ? initialServiceId
-      : ALL_SERVICES[0].id
+      : ALL_SERVICES[0].id,
   );
-  const [modality, setModality] = useState<
-    'Online (Videochiamata)' | 'Studio (In Presenza)'
-  >('Online (Videochiamata)');
+  const [modalityId, setModalityId] = useState<ModalityId>('distanza');
   const [selectedDate, setSelectedDate] = useState<string>(
-    upcomingDays[0]?.label || ''
+    upcomingDays[0]?.label || '',
   );
   const [selectedTime, setSelectedTime] = useState<string>(TIME_SLOTS[1]);
   const [clientName, setClientName] = useState<string>(profile.name || '');
@@ -68,11 +114,13 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
 
   const selectedService =
     ALL_SERVICES.find((s) => s.id === selectedServiceId) || ALL_SERVICES[0];
+  const modalityLabel =
+    MODALITIES.find((m) => m.id === modalityId)?.label ?? MODALITIES[0].label;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName.trim() || !clientEmail.trim()) {
-      setErrorMsg('Inserisci almeno il tuo nome e un indirizzo email valido.');
+      setErrorMsg(consulti.accessoObbligatorio);
       return;
     }
     setErrorMsg('');
@@ -81,15 +129,14 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
       id: `TI-${Math.floor(100000 + Math.random() * 900000)}`,
       serviceId: selectedService.id,
       serviceTitle: selectedService.title,
-      price: selectedService.price,
-      modality,
+      price: selectedService.price ?? 0,
+      modality: modalityLabel,
       date: selectedDate,
       time: selectedTime,
       clientName: clientName.trim(),
       clientEmail: clientEmail.trim(),
-      clientPhone: clientPhone.trim() || 'Non indicato',
-      intention:
-        intention.trim() || 'Ascolto generale sul momento presente.',
+      clientPhone: clientPhone.trim() || brand.whatsapp,
+      intention: intention.trim() || consulti.intro,
       status: 'Confermato',
       createdAt: new Date().toLocaleDateString('it-IT'),
     };
@@ -109,39 +156,45 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
           </div>
           <div className="flex flex-col gap-1">
             <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest">
-              Spazio Riservato • Codice {confirmedBooking.id}
+              {consulti.successoKicker} · {confirmedBooking.id}
             </span>
             <h1 className="font-headline-sm text-headline-sm text-on-surface">
-              Incontro Confermato
+              {consulti.successoTitolo}
             </h1>
           </div>
           <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-            Grazie {confirmedBooking.clientName}. La tua richiesta è stata registrata nella tua Area Riservata. Riceverai i dettagli di accesso prima dell&apos;incontro.
+            {conPeso(consulti.avvisoConferma)}
           </p>
 
           <div className="w-full p-space-md rounded-lg bg-surface-container-lowest/80 flex flex-col gap-space-xs text-left">
-            <div className="flex justify-between font-body-md text-body-md">
-              <span className="text-on-surface-variant">Esperienza</span>
+            <div className="flex justify-between font-body-md text-body-md gap-2">
+              <span className="text-on-surface-variant">{nav.consulti}</span>
               <span className="text-on-surface font-semibold text-right">
                 {confirmedBooking.serviceTitle}
               </span>
             </div>
             <div className="flex justify-between font-body-md text-body-md">
-              <span className="text-on-surface-variant">Data e Ora</span>
+              <span className="text-on-surface-variant">
+                {consulti.calendario.giorno}
+              </span>
               <span className="text-primary font-semibold">
-                {confirmedBooking.date} • {confirmedBooking.time}
+                {confirmedBooking.date} · {confirmedBooking.time}
               </span>
             </div>
-            <div className="flex justify-between font-body-md text-body-md">
-              <span className="text-on-surface-variant">Modalità</span>
-              <span className="text-on-surface">{confirmedBooking.modality}</span>
-            </div>
-            <div className="flex justify-between font-body-md text-body-md">
-              <span className="text-on-surface-variant">Quota Rituale</span>
-              <span className="text-primary font-semibold">
-                € {confirmedBooking.price}
+            <div className="flex justify-between font-body-md text-body-md gap-2">
+              <span className="text-on-surface-variant shrink-0">Modalità</span>
+              <span className="text-on-surface text-right">
+                {confirmedBooking.modality}
               </span>
             </div>
+            {confirmedBooking.price > 0 && (
+              <div className="flex justify-between font-body-md text-body-md">
+                <span className="text-on-surface-variant">Totale</span>
+                <span className="text-primary font-semibold">
+                  € {confirmedBooking.price}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col w-full gap-space-sm pt-space-xs">
@@ -153,7 +206,7 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
               <span className="material-symbols-outlined text-[20px]">
                 lock_open
               </span>
-              Vai all&apos;Area Riservata
+              {nav.riservata}
             </button>
             <button
               type="button"
@@ -163,7 +216,7 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
               }}
               className="w-full min-h-[48px] rounded-lg bg-surface-container-high/60 text-on-surface font-title-md text-title-md font-medium flex items-center justify-center gap-space-xs"
             >
-              Torna alla Home
+              {nav.home}
             </button>
           </div>
         </div>
@@ -182,21 +235,20 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
             calendar_month
           </span>
           <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest">
-            Agenda Riservata
+            {cta.consultoWhatsapp}
           </span>
         </div>
         <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-normal">
-          Prenota il Tuo Consulto
+          {cta.consultoWhatsapp}
         </h1>
         <p className="font-body-md text-body-md text-on-surface-variant max-w-sm leading-relaxed">
-          Scegli l&apos;esperienza, il giorno e la modalità più accogliente per il tuo momento.
+          {conPeso(consulti.intro)}
         </p>
       </div>
 
-      {/* Step 1: Service */}
       <section className="rounded-xl p-space-lg bg-surface-container/70 backdrop-blur-md shadow-md flex flex-col gap-space-sm">
         <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-          1. Seleziona Esperienza
+          1. {nav.consulti} / {nav.percorsi}
         </span>
         <div className="flex flex-col gap-space-xs">
           {ALL_SERVICES.map((srv) => {
@@ -217,47 +269,52 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
                     {srv.title}
                   </span>
                   <span className="font-label-sm text-label-sm text-on-surface-variant">
-                    {srv.duration} • {srv.modality}
+                    {srv.duration}
                   </span>
                 </div>
                 <span className="font-headline-sm text-headline-sm text-primary font-semibold shrink-0">
-                  € {srv.price}
+                  {srv.price != null ? `€ ${srv.price}` : percorsi.inviaWhatsapp}
                 </span>
               </button>
             );
           })}
         </div>
+        {selectedService.kind === 'percorso' && (
+          <p className="font-body-md text-body-md text-on-surface-variant">
+            {conPeso(percorsi.chiacchierata)}
+          </p>
+        )}
       </section>
 
-      {/* Step 2: Modality, Date & Time */}
       <section className="rounded-xl p-space-lg bg-surface-container/70 backdrop-blur-md shadow-md flex flex-col gap-space-md">
         <div className="flex flex-col gap-space-xs">
           <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-            2. Modalità d&apos;Incontro
+            2. Modalità
           </span>
-          <div className="grid grid-cols-2 gap-space-xs">
-            {(
-              ['Online (Videochiamata)', 'Studio (In Presenza)'] as const
-            ).map((m) => (
+          <div className="grid grid-cols-1 gap-space-xs">
+            {MODALITIES.map((m) => (
               <button
-                key={m}
+                key={m.id}
                 type="button"
-                onClick={() => setModality(m)}
-                className={`py-2.5 px-space-sm rounded-lg font-label-md text-label-md transition-colors ${
-                  modality === m
+                onClick={() => setModalityId(m.id)}
+                className={`py-2.5 px-space-sm rounded-lg font-label-md text-label-md transition-colors text-left ${
+                  modalityId === m.id
                     ? 'bg-primary-container text-on-primary'
                     : 'bg-surface-container-high/80 text-on-surface'
                 }`}
               >
-                {m}
+                {m.label}
               </button>
             ))}
           </div>
+          <p className="font-label-sm text-label-sm text-on-surface-variant">
+            {conPeso(consulti.seraOnline)}
+          </p>
         </div>
 
         <div className="flex flex-col gap-space-xs">
           <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-            Giorno Disponibile
+            {consulti.calendario.giorno}
           </span>
           <div className="grid grid-cols-3 gap-space-xs">
             {upcomingDays.map((day) => {
@@ -287,7 +344,7 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
 
         <div className="flex flex-col gap-space-xs">
           <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-            Fascia Oraria
+            {consulti.calendario.orario}
           </span>
           <div className="flex flex-wrap gap-space-xs">
             {TIME_SLOTS.map((slot) => {
@@ -297,10 +354,10 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
                   key={slot}
                   type="button"
                   onClick={() => setSelectedTime(slot)}
-                  className={`px-space-md py-2 rounded-full font-label-md text-label-md transition-colors ${
+                  className={`px-space-md py-2 rounded-lg font-label-md text-label-md transition-colors ${
                     active
                       ? 'bg-primary-container text-on-primary'
-                      : 'bg-surface-container-high/80 text-on-surface'
+                      : 'bg-surface-container-lowest/80 text-on-surface'
                   }`}
                 >
                   {slot}
@@ -311,79 +368,53 @@ export const PrenotaPage: React.FC<PrenotaPageProps> = ({
         </div>
       </section>
 
-      {/* Step 3: Client Details */}
       <section className="rounded-xl p-space-lg bg-surface-container/70 backdrop-blur-md shadow-md flex flex-col gap-space-sm">
         <span className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-          3. I Tuoi Riferimenti
+          3. Contatti
         </span>
-
-        <label className="flex flex-col gap-1">
-          <span className="font-label-sm text-label-sm text-on-surface-variant">
-            Nome e Cognome *
-          </span>
-          <input
-            type="text"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            placeholder="Es. Chiara Rossi"
-            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="font-label-sm text-label-sm text-on-surface-variant">
-            Email *
-          </span>
-          <input
-            type="email"
-            value={clientEmail}
-            onChange={(e) => setClientEmail(e.target.value)}
-            placeholder="tua@email.it"
-            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="font-label-sm text-label-sm text-on-surface-variant">
-            Telefono / WhatsApp
-          </span>
-          <input
-            type="tel"
-            value={clientPhone}
-            onChange={(e) => setClientPhone(e.target.value)}
-            placeholder="+39 ..."
-            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
-          />
-        </label>
-
-        <label className="flex flex-col gap-1">
-          <span className="font-label-sm text-label-sm text-on-surface-variant">
-            Tema o Intenzione dell&apos;Incontro (facoltativo)
-          </span>
-          <textarea
-            rows={3}
-            value={intention}
-            onChange={(e) => setIntention(e.target.value)}
-            placeholder="Condividi brevemente cosa ti porta qui oggi..."
-            className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary resize-none"
-          />
-        </label>
-
+        <p className="font-body-md text-body-md text-on-surface-variant">
+          {conPeso(consulti.accessoObbligatorio)}
+        </p>
+        <input
+          type="text"
+          required
+          value={clientName}
+          onChange={(e) => setClientName(e.target.value)}
+          placeholder={percorsi.nome}
+          className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
+        />
+        <input
+          type="email"
+          required
+          value={clientEmail}
+          onChange={(e) => setClientEmail(e.target.value)}
+          placeholder={siteContent.pages.contatti.form.email}
+          className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
+        />
+        <input
+          type="tel"
+          value={clientPhone}
+          onChange={(e) => setClientPhone(e.target.value)}
+          placeholder={consulti.recapito}
+          className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary"
+        />
+        <textarea
+          rows={3}
+          value={intention}
+          onChange={(e) => setIntention(e.target.value)}
+          placeholder={percorsi.nota}
+          className="w-full rounded-lg bg-surface-container-lowest/85 border border-outline-variant/40 px-3 py-2.5 text-on-surface font-body-md text-body-md focus:outline-none focus:border-primary resize-none"
+        />
         {errorMsg && (
-          <p className="text-error font-label-sm text-label-sm">{errorMsg}</p>
+          <p className="font-body-md text-body-md text-error">{errorMsg}</p>
         )}
+        <button
+          type="submit"
+          className="w-full min-h-[48px] rounded-lg bg-primary-container text-on-primary font-title-md text-title-md font-semibold flex items-center justify-center gap-space-xs shadow-[0_0_20px_rgba(212,175,55,0.28)] active:scale-[0.98] transition-all"
+        >
+          {consulti.conferma}
+        </button>
       </section>
-
-      {/* Summary & Submit */}
-      <button
-        type="submit"
-        className="w-full min-h-[48px] rounded-lg bg-primary-container text-on-primary font-title-md text-title-md font-semibold flex items-center justify-center gap-space-xs shadow-[0_0_20px_rgba(212,175,55,0.28)] active:scale-[0.98] transition-all"
-      >
-        <span className="material-symbols-outlined material-symbols-filled text-[20px]">
-          calendar_month
-        </span>
-        Conferma Prenotazione • € {selectedService.price}
-      </button>
     </form>
   );
 };

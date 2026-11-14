@@ -1,4 +1,5 @@
 import type { ArcanaCard, BlogArticle, ConsultationService, ShopProduct } from '../types';
+import { siteContent } from './siteContent';
 
 export const LOGO_URL =
   'https://lh3.googleusercontent.com/aida/ALJJyrCRw_K7e9fZZvpuP2OT5XhDp2Cvxj_GXGke131Rz-UGQDAMf6_TPmf5piNBVpllFLFUzG2KXxwlo0aJILIRXwI1C4oSaVAMHfTZQpOd5DMVuT9qEMfcIaX4lAi83-jImLf0EGKAedzYk7wtx1cIMbYYQm6OvTwA1eTMY2OR3AlfpKtj7P7TkEKpk_zNlaYrKtVaozud0AuPiadfKlkJiOZk27Bs4ZWz5N-Biil-UjP5';
@@ -417,15 +418,18 @@ export const BLOG_ARTICLES: BlogArticle[] = [
   },
 ];
 
+const waDigits = siteContent.brand.whatsapp.replace(/\D/g, '');
+
+/** Contatti ufficiali — allineati a siteContent (niente dati demo). */
 export const CONTACT_INFO = {
-  whatsappNumber: '+39 340 812 4590',
-  whatsappLink: 'https://wa.me/393408124590',
-  telegramHandle: '@TarotItaliaMTRogani',
-  telegramLink: 'https://t.me/TarotItaliaMTRogani',
-  phoneDisplay: '+39 340 812 4590',
-  phoneHref: 'tel:+393408124590',
-  email: 'consulenze@tarotitalia.it',
-  emailHref: 'mailto:consulenze@tarotitalia.it',
-  studioAddress: 'Studio Olistico — Via delle Erbe 14, Milano (su appuntamento)',
-  hours: 'Lun – Sab • 09:30 – 19:30',
+  whatsappNumber: siteContent.brand.whatsapp,
+  whatsappLink: `https://wa.me/${waDigits}`,
+  telegramHandle: siteContent.brand.whatsapp,
+  telegramLink: `https://t.me/+${waDigits}`,
+  phoneDisplay: siteContent.brand.whatsapp,
+  phoneHref: `tel:+${waDigits}`,
+  email: siteContent.brand.email,
+  emailHref: `mailto:${siteContent.brand.email}`,
+  studioAddress: siteContent.pages.contatti.sede,
+  hours: siteContent.pages.contatti.appuntamento,
 };

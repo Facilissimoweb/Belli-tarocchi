@@ -67,7 +67,7 @@ export interface BookingRecord {
   serviceId: string;
   serviceTitle: string;
   price: number;
-  modality: 'Online (Videochiamata)' | 'Studio (In Presenza)';
+  modality: string;
   date: string;
   time: string;
   clientName: string;
