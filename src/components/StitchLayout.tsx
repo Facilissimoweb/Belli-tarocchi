@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { mailtoHref } from "../lib/mailto";
 import { getPhoneHref, telegramHref, whatsappChatHref } from "../lib/whatsapp";
 import type { ContactChannel, RoutePath } from "../types";
+import { Footer } from "./Footer";
 import { BottomNav as StitchBottomNav } from "./StitchBottomNav";
 import { Drawer as StitchDrawer } from "./StitchDrawer";
 import { Header as StitchHeader } from "./StitchHeader";
@@ -97,12 +98,13 @@ export function StitchLayout() {
         onNavigate={handleNavigate}
       />
 
-      <main className="flex flex-col relative w-full pt-16 pb-28 bg-surface flex-1">
-        <div className="max-w-md mx-auto w-full">
+      <main className="flex flex-col relative w-full pt-16 bg-surface flex-1">
+        <div className="max-w-md mx-auto w-full pb-space-xl">
           <Outlet context={{ onNavigate: handleNavigate, activeChannel, setActiveChannel }} />
         </div>
       </main>
 
+      <Footer />
       <StitchBottomNav activeChannel={activeChannel} onSelectChannel={handleSelectChannel} />
     </div>
   );
